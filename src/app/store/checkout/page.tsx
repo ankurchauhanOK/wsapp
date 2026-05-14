@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { StoreHeader } from "@/components/store/StoreHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore, useCustomerStore, useStoreStatusStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
@@ -103,7 +102,7 @@ export default function CheckoutPage() {
       <div className="max-w-lg mx-auto p-4 space-y-4">
         {/* Store Closed Banner */}
         {!isOpen && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3 shadow-card">
             <Store className="h-5 w-5 text-amber-600 shrink-0" />
             <div>
               <p className="text-sm font-medium text-amber-800">Store is currently closed</p>
@@ -113,8 +112,8 @@ export default function CheckoutPage() {
         )}
 
         {/* Customer Details */}
-        <div className="bg-white rounded-xl p-4 space-y-3">
-          <h3 className="font-semibold">Your Details</h3>
+        <div className="bg-white rounded-xl shadow-card p-4 space-y-3">
+          <h3 className="font-semibold text-gray-900">Your Details</h3>
           <div className="space-y-3">
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -153,8 +152,8 @@ export default function CheckoutPage() {
         </div>
 
         {/* Order Summary */}
-        <div className="bg-white rounded-xl p-4 space-y-3">
-          <h3 className="font-semibold">Order Summary</h3>
+        <div className="bg-white rounded-xl shadow-card p-4 space-y-3">
+          <h3 className="font-semibold text-gray-900">Order Summary</h3>
           <div className="space-y-2">
             {items.map((item) => (
               <div
@@ -164,7 +163,7 @@ export default function CheckoutPage() {
                 <span className="text-gray-600">
                   {item.product.name} x{item.quantity}
                 </span>
-                <span className="font-medium">
+                <span className="font-medium text-gray-900">
                   {formatPrice(item.product.price * item.quantity)}
                 </span>
               </div>
@@ -173,27 +172,27 @@ export default function CheckoutPage() {
           <Separator />
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-500">Subtotal</span>
-            <span>{formatPrice(subtotal())}</span>
+            <span className="font-medium text-gray-900">{formatPrice(subtotal())}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-500">Delivery</span>
             <span>
               {deliveryFee === 0 ? (
-                <span className="text-green-600">Free</span>
+                <span className="text-green-600 font-medium">Free</span>
               ) : (
-                formatPrice(deliveryFee)
+                <span className="font-medium text-gray-900">{formatPrice(deliveryFee)}</span>
               )}
             </span>
           </div>
           <Separator />
           <div className="flex items-center justify-between font-semibold text-base">
-            <span>Total</span>
-            <span className="text-green-700">{formatPrice(total)}</span>
+            <span className="text-gray-900">Total</span>
+            <span className="text-green-600">{formatPrice(total)}</span>
           </div>
         </div>
 
         <Button
-          className="w-full h-12 text-base font-semibold"
+          className="w-full h-12 text-base font-semibold rounded-full shadow-lg"
           onClick={handleSubmit}
           disabled={loading}
         >

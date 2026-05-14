@@ -114,7 +114,7 @@ export default function BillingScannerPage() {
 
       {/* Recent Scanned Items */}
       {recentScans.length > 0 && showRecent && billItems.length === 0 && (
-        <div className="bg-white rounded-xl p-3">
+        <div className="bg-white rounded-xl shadow-card p-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600">
               <Clock className="h-4 w-4" />
@@ -122,7 +122,7 @@ export default function BillingScannerPage() {
             </div>
             <button
               onClick={() => setShowRecent(false)}
-              className="text-xs text-gray-400"
+              className="text-xs text-gray-500 hover:text-gray-700"
             >
               Hide
             </button>
@@ -160,8 +160,8 @@ export default function BillingScannerPage() {
         </div>
 
         {billItems.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <ShoppingCart className="h-8 w-8 mx-auto mb-2" />
+          <div className="text-center py-8 text-gray-500">
+            <ShoppingCart className="h-8 w-8 mx-auto mb-2 text-gray-300" />
             <p className="text-sm">Scan items to start billing</p>
           </div>
         ) : (
@@ -169,38 +169,40 @@ export default function BillingScannerPage() {
             {billItems.map((item) => (
               <div
                 key={item.product.id}
-                className="bg-white rounded-lg p-3 flex items-center gap-3"
+                className="bg-white rounded-xl shadow-card p-3 flex items-center gap-3"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{item.product.name}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-sm font-medium text-gray-900">{item.product.name}</p>
+                  <p className="text-xs text-gray-500">
                     {formatPrice(item.product.price)} each
                   </p>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 bg-gray-50 rounded-full p-0.5">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="icon-sm"
                     onClick={() =>
                       updateBillQuantity(item.product.id, item.quantity - 1)
                     }
+                    className="h-7 w-7 rounded-full hover:bg-white hover:shadow-sm"
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
-                  <span className="w-6 text-center text-sm font-medium">
+                  <span className="w-6 text-center text-sm font-semibold text-gray-900">
                     {item.quantity}
                   </span>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="icon-sm"
                     onClick={() =>
                       updateBillQuantity(item.product.id, item.quantity + 1)
                     }
+                    className="h-7 w-7 rounded-full hover:bg-white hover:shadow-sm"
                   >
                     <Plus className="h-3 w-3" />
                   </Button>
                 </div>
-                <p className="text-sm font-semibold w-20 text-right">
+                <p className="text-sm font-semibold w-20 text-right text-gray-900">
                   {formatPrice(item.product.price * item.quantity)}
                 </p>
               </div>
@@ -211,16 +213,16 @@ export default function BillingScannerPage() {
 
       {/* Bill Total & Complete */}
       {billItems.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <div className="max-w-lg mx-auto space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Total ({itemCount} items)</span>
-              <span className="text-xl font-bold text-green-700">
+              <span className="text-xl font-bold text-green-600">
                 {formatPrice(total)}
               </span>
             </div>
             <Button
-              className="w-full h-12 text-base font-semibold"
+              className="w-full h-12 text-base font-semibold rounded-full shadow-lg"
               onClick={handleCompleteBill}
               disabled={submitting}
             >

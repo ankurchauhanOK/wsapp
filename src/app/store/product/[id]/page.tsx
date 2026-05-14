@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useCartStore, useFavoritesStore } from "@/lib/store";
 import { formatPrice, stockStatus } from "@/lib/utils";
 import { WEIGHT_PRESETS } from "@/lib/constants";
-import { Heart, Minus, Plus, ShoppingCart, ArrowLeft } from "lucide-react";
+import { Heart, Minus, Plus, ShoppingCart } from "lucide-react";
 import type { Product } from "@/types";
 
 export default function ProductDetailPage() {
@@ -54,8 +54,8 @@ export default function ProductDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <StoreHeader showBack onBack={() => router.back()} />
-        <div className="max-w-lg mx-auto p-4 text-center py-12 text-gray-400">
-          Product not found
+        <div className="max-w-lg mx-auto p-4 text-center py-12 text-gray-500">
+          <p className="font-medium text-gray-900">Product not found</p>
         </div>
       </div>
     );
@@ -100,14 +100,14 @@ export default function ProductDetailPage() {
         <div className="p-4 space-y-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h1 className="text-xl font-bold">{product.name}</h1>
+              <h1 className="text-xl font-bold text-gray-900">{product.name}</h1>
               <p className="text-sm text-gray-500 mt-0.5">
                 {product.category?.name || "General"}
               </p>
             </div>
             <button
               onClick={() => toggle(product.id)}
-              className="p-2"
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
             >
               <Heart
                 className={`h-6 w-6 ${
@@ -118,7 +118,7 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-green-700">
+            <span className="text-2xl font-bold text-green-600">
               {formatPrice(product.price)}
             </span>
             <span className="text-sm text-gray-400">
@@ -136,15 +136,15 @@ export default function ProductDetailPage() {
             <>
               {product.type === "weight" && (
                 <div>
-                  <p className="text-sm font-medium mb-2">Select quantity</p>
+                  <p className="text-sm font-medium mb-2 text-gray-900">Select quantity</p>
                   <div className="flex flex-wrap gap-2">
                     {WEIGHT_PRESETS.map((w) => (
                       <button
                         key={w}
                         onClick={() => setWeightQty(w)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                        className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
                           weightQty === w
-                            ? "bg-green-600 text-white border-green-600"
+                            ? "bg-green-600 text-white border-green-600 shadow-sm"
                             : "bg-white text-gray-700 border-gray-200 hover:border-green-300"
                         }`}
                       >
@@ -163,11 +163,11 @@ export default function ProductDetailPage() {
                     variant="outline"
                     size="lg"
                     onClick={() => handleQtyChange(-1)}
-                    className="h-12 w-12"
+                    className="h-12 w-12 rounded-full border-gray-200 hover:bg-gray-50"
                   >
                     <Minus className="h-5 w-5" />
                   </Button>
-                  <span className="text-xl font-semibold w-12 text-center">
+                  <span className="text-xl font-semibold w-12 text-center text-gray-900">
                     {cartItem.quantity}
                     {product.type === "weight" ? " kg" : ""}
                   </span>
@@ -175,14 +175,14 @@ export default function ProductDetailPage() {
                     variant="outline"
                     size="lg"
                     onClick={() => handleQtyChange(1)}
-                    className="h-12 w-12"
+                    className="h-12 w-12 rounded-full border-gray-200 hover:bg-gray-50"
                   >
                     <Plus className="h-5 w-5" />
                   </Button>
                 </div>
               ) : (
                 <Button
-                  className="w-full h-12 text-base font-semibold"
+                  className="w-full h-12 text-base font-semibold rounded-full"
                   onClick={handleAddToCart}
                 >
                   <ShoppingCart className="h-5 w-5 mr-2" />
@@ -196,7 +196,7 @@ export default function ProductDetailPage() {
           )}
 
           {product.notes && (
-            <div className="bg-gray-50 rounded-lg p-3">
+            <div className="bg-gray-100 rounded-xl p-3">
               <p className="text-xs text-gray-500">{product.notes}</p>
             </div>
           )}

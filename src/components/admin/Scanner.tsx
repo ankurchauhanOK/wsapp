@@ -246,22 +246,22 @@ export function Scanner({ mode, onProductFound, onStockUpdate }: ScannerProps) {
 
       {/* Search Results */}
       {searchResults.length > 0 && !product && (
-        <div className="bg-white rounded-xl p-3 space-y-1 animate-fade-in">
-          <p className="text-xs text-gray-400 font-medium mb-2">
+        <div className="bg-white rounded-xl shadow-card p-3 space-y-1 animate-fade-in">
+          <p className="text-xs text-gray-500 font-medium mb-2">
             Select a product:
           </p>
           {searchResults.map((p) => (
             <button
               key={p.id}
               onClick={() => selectProduct(p)}
-              className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 text-left"
+              className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 text-left transition-colors"
             >
-              <div className="w-8 h-8 bg-green-50 rounded flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center shrink-0">
                 <span className="text-sm">🛒</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{p.name}</p>
-                <p className="text-xs text-gray-400">
+                <p className="text-sm font-medium text-gray-900">{p.name}</p>
+                <p className="text-xs text-gray-500">
                   Stock: {p.stock} &middot; ₹{p.price}
                 </p>
               </div>
@@ -272,11 +272,11 @@ export function Scanner({ mode, onProductFound, onStockUpdate }: ScannerProps) {
 
       {/* Product Result */}
       {product && (
-        <div className="bg-white rounded-xl p-4 space-y-3 animate-fade-in">
+        <div className="bg-white rounded-xl shadow-card p-4 space-y-3 animate-fade-in">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold">{product.name}</h3>
-              <p className="text-xs text-gray-400">
+              <h3 className="font-semibold text-gray-900">{product.name}</h3>
+              <p className="text-xs text-gray-500">
                 {product.category?.name} &middot; Stock: {product.stock} {product.unit_type}
               </p>
             </div>

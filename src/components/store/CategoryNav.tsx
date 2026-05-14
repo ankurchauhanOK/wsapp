@@ -33,28 +33,28 @@ export function CategoryNav({ categories, selected, onSelect }: CategoryNavProps
         <button
           onClick={() => onSelect(null)}
           className={cn(
-            "flex flex-col items-center gap-1 min-w-[64px] py-2 px-1 rounded-xl transition-colors",
+            "flex flex-col items-center gap-1 min-w-[68px] py-2 px-2 rounded-full transition-all",
             selected === null
-              ? "bg-green-100 text-green-700"
-              : "bg-gray-50 text-gray-600"
+              ? "bg-green-600 text-white shadow-sm"
+              : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
           )}
         >
           <span className="text-lg">🏪</span>
-          <span className="text-[10px] font-medium whitespace-nowrap">All</span>
+          <span className="text-[10px] font-semibold whitespace-nowrap">All</span>
         </button>
         {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => onSelect(cat.id === selected ? null : cat.id)}
             className={cn(
-              "flex flex-col items-center gap-1 min-w-[64px] py-2 px-1 rounded-xl transition-colors",
+              "flex flex-col items-center gap-1 min-w-[68px] py-2 px-2 rounded-full transition-all",
               cat.id === selected
-                ? "bg-green-100 text-green-700"
-                : "bg-gray-50 text-gray-600"
+                ? "bg-green-600 text-white shadow-sm"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
             )}
           >
             <span className="text-lg">{CATEGORY_ICONS[cat.name] || "📦"}</span>
-            <span className="text-[10px] font-medium whitespace-nowrap">
+            <span className="text-[10px] font-semibold whitespace-nowrap">
               {cat.name}
             </span>
           </button>

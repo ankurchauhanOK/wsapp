@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatDate, formatTime } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { ShoppingCart, Clock, Filter } from "lucide-react";
+import { ShoppingCart, Filter } from "lucide-react";
 import type { Order } from "@/types";
 
 export default function AdminOrdersPage() {
@@ -40,9 +40,7 @@ export default function AdminOrdersPage() {
   }
 
   const filtered =
-    filter === "all"
-      ? orders
-      : orders.filter((o) => o.status === filter);
+    filter === "all" ? orders : orders.filter((o) => o.status === filter);
 
   const statusCounts = orders.reduce(
     (acc, o) => {
@@ -67,9 +65,9 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <div className="p-4 space-y-4 max-w-4xl mx-auto">
+    <div className="p-4 space-y-4 max-w-5xl mx-auto">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Orders</h1>
+        <h1 className="text-xl font-bold text-gray-900">Orders</h1>
         <Filter className="h-5 w-5 text-gray-400" />
       </div>
 
@@ -80,15 +78,15 @@ export default function AdminOrdersPage() {
             <button
               key={s}
               onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                 filter === s
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-100 text-gray-600"
+                  ? "bg-green-600 text-white shadow-sm"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
               }`}
             >
               {s.charAt(0).toUpperCase() + s.slice(1)}
               {statusCounts[s] > 0 && (
-                <span className="ml-1 opacity-70">({statusCounts[s]})</span>
+                <span className="ml-1 opacity-80">({statusCounts[s]})</span>
               )}
             </button>
           )
@@ -98,25 +96,25 @@ export default function AdminOrdersPage() {
       {loading ? (
         <div className="space-y-2">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse" />
+            <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
-          <ShoppingCart className="h-12 w-12 mx-auto mb-3" />
-          <p className="font-medium">No orders found</p>
+        <div className="text-center py-12 text-gray-500">
+          <ShoppingCart className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+          <p className="font-medium text-gray-900">No orders found</p>
         </div>
       ) : (
         <div className="space-y-2">
           {filtered.map((order) => (
             <div
               key={order.id}
-              className="bg-white rounded-lg p-4 space-y-2 cursor-pointer hover:shadow-sm transition-shadow"
+              className="bg-white rounded-xl shadow-card p-4 space-y-3 cursor-pointer hover:shadow-lg transition-shadow"
               onClick={() => router.push(`/admin/orders/${order.id}`)}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-gray-400">
+                  <span className="text-xs font-mono text-gray-500">
                     #{order.id.slice(0, 8).toUpperCase()}
                   </span>
                   <Badge variant={statusVariant(order.status)} className="text-[9px]">
@@ -128,20 +126,20 @@ export default function AdminOrdersPage() {
                     </Badge>
                   )}
                 </div>
-                <span className="font-semibold">{formatPrice(order.total)}</span>
+                <span className="font-semibold text-gray-900">{formatPrice(order.total)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">{order.customer_name}</span>
-                <span className="text-xs text-gray-400">
+                <span className="text-gray-700">{order.customer_name}</span>
+                <span className="text-xs text-gray-500">
                   {formatDate(order.created_at)} {formatTime(order.created_at)}
                 </span>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-2 pt-1">
                 {order.status === "pending" && (
                   <>
                     <Button
                       size="sm"
-                      className="text-xs h-7"
+                      className="text-xs h-8 rounded-full"
                       onClick={(e) => {
                         e.stopPropagation();
                         updateStatus(order.id, "confirmed");
@@ -152,7 +150,7 @@ export default function AdminOrdersPage() {
                     <Button
                       size="sm"
                       variant="destructive"
-                      className="text-xs h-7"
+                      className="text-xs h-8 rounded-full"
                       onClick={(e) => {
                         e.stopPropagation();
                         updateStatus(order.id, "cancelled");
@@ -165,7 +163,7 @@ export default function AdminOrdersPage() {
                 {order.status === "confirmed" && (
                   <Button
                     size="sm"
-                    className="text-xs h-7"
+                    className="text-xs h-8 rounded-full"
                     onClick={(e) => {
                       e.stopPropagation();
                       updateStatus(order.id, "preparing");
@@ -177,7 +175,7 @@ export default function AdminOrdersPage() {
                 {order.status === "preparing" && (
                   <Button
                     size="sm"
-                    className="text-xs h-7"
+                    className="text-xs h-8 rounded-full"
                     onClick={(e) => {
                       e.stopPropagation();
                       updateStatus(order.id, "delivered");

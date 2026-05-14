@@ -51,14 +51,16 @@ export function StorefrontPage() {
     <div className="min-h-screen bg-gray-50">
       <StoreHeader />
 
-      {/* WhatsApp Entry */}
-      <div className="bg-green-700 text-white px-4 py-3">
+      {/* WhatsApp Entry Band — Green Accent */}
+      <div className="bg-green-600 text-white px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <WhatsappLogo className="h-6 w-6" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center">
+              <WhatsappLogo className="h-5 w-5 text-white" />
+            </div>
             <div>
-              <p className="text-sm font-medium">Order via WhatsApp</p>
-              <p className="text-xs text-green-200">
+              <p className="text-sm font-semibold">Order via WhatsApp</p>
+              <p className="text-xs text-green-100">
                 Tap to start chatting
               </p>
             </div>
@@ -69,9 +71,9 @@ export function StorefrontPage() {
             rel="noopener noreferrer"
           >
             <Button
-              variant="secondary"
+              variant="white-on-green"
               size="sm"
-              className="bg-white text-green-700 hover:bg-green-50"
+              className="rounded-full"
             >
               Chat Now
             </Button>
@@ -95,7 +97,7 @@ export function StorefrontPage() {
         {/* Products */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-lg">
+            <h2 className="font-semibold text-lg text-gray-900">
               {search
                 ? `Search results (${products.length})`
                 : selectedCategory
@@ -103,7 +105,7 @@ export function StorefrontPage() {
                   : "All Products"}
             </h2>
             {products.length > 0 && (
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-gray-500">
                 {products.length} items
               </span>
             )}
@@ -114,9 +116,9 @@ export function StorefrontPage() {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="bg-white rounded-xl p-3 flex gap-3 animate-pulse"
+                  className="bg-white rounded-xl p-3 flex gap-3 animate-pulse shadow-card"
                 >
-                  <div className="w-20 h-20 bg-gray-100 rounded-lg" />
+                  <div className="w-20 h-20 bg-gray-100 rounded-xl" />
                   <div className="flex-1 space-y-2">
                     <div className="h-4 bg-gray-100 rounded w-3/4" />
                     <div className="h-3 bg-gray-100 rounded w-1/4" />
@@ -126,12 +128,12 @@ export function StorefrontPage() {
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
-              <p className="text-lg mb-1">No products found</p>
+            <div className="text-center py-12 text-gray-500">
+              <p className="text-lg mb-1 font-medium text-gray-900">No products found</p>
               <p className="text-sm">Try a different search or category</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 pb-20">
               {products.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -140,11 +142,11 @@ export function StorefrontPage() {
         </div>
       </div>
 
-      {/* Floating Cart Button */}
+      {/* Floating Cart Pill */}
       {itemCount > 0 && (
         <div className="fixed bottom-4 left-4 right-4 z-40 max-w-lg mx-auto">
           <Link href="/store/cart">
-            <Button className="w-full h-12 shadow-lg text-base font-semibold">
+            <Button className="w-full h-14 rounded-full shadow-lg text-base font-semibold bg-green-700 hover:bg-green-800">
               <span>View Cart ({itemCount} items)</span>
             </Button>
           </Link>

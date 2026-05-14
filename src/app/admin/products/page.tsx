@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Package, MoreVertical, ToggleLeft, ToggleRight } from "lucide-react";
+import { Plus, Search, Package } from "lucide-react";
 import Link from "next/link";
 import type { Product } from "@/types";
 
@@ -34,22 +34,13 @@ export default function AdminProductsPage() {
     }
   }
 
-  async function toggleActive(product: Product) {
-    await fetch(`/api/products/${product.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ active: !product.active }),
-    });
-    loadProducts();
-  }
-
   return (
-    <div className="p-4 space-y-4 max-w-4xl mx-auto">
+    <div className="p-4 space-y-4 max-w-5xl mx-auto">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Products</h1>
+        <h1 className="text-xl font-bold text-gray-900">Products</h1>
         <Link href="/admin/products/new">
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-1" /> Add
+          <Button size="sm" className="gap-1">
+            <Plus className="h-4 w-4" /> Add
           </Button>
         </Link>
       </div>
@@ -67,15 +58,15 @@ export default function AdminProductsPage() {
       {loading ? (
         <div className="space-y-2">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse" />
+            <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
           ))}
         </div>
       ) : products.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
-          <Package className="h-12 w-12 mx-auto mb-3" />
-          <p className="font-medium">No products yet</p>
+        <div className="text-center py-12 text-gray-500">
+          <Package className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+          <p className="font-medium text-gray-900">No products yet</p>
           <Link href="/admin/products/new">
-            <Button variant="outline" className="mt-4">
+            <Button variant="outline" className="mt-4 rounded-full">
               Add your first product
             </Button>
           </Link>
@@ -85,22 +76,22 @@ export default function AdminProductsPage() {
           {products.map((product) => (
             <div
               key={product.id}
-              className="bg-white rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:shadow-sm transition-shadow"
+              className="bg-white rounded-xl shadow-card p-3 flex items-center gap-3 cursor-pointer hover:shadow-lg transition-shadow"
               onClick={() => router.push(`/admin/products/${product.id}`)}
             >
-              <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
                 <span className="text-lg">🛒</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{product.name}</p>
-                <p className="text-xs text-gray-400">
+                <p className="text-sm font-medium text-gray-900">{product.name}</p>
+                <p className="text-xs text-gray-500">
                   {product.category?.name} &middot; Stock: {product.stock} {product.unit_type}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-semibold">{formatPrice(product.price)}</p>
+                <p className="text-sm font-semibold text-gray-900">{formatPrice(product.price)}</p>
                 {product.stock <= product.low_stock_threshold && (
-                  <Badge variant="warning" className="text-[9px]">
+                  <Badge variant="warning" className="text-[9px] mt-0.5">
                     Low
                   </Badge>
                 )}

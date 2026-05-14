@@ -47,8 +47,8 @@ export default function SettingsPage() {
       <h1 className="text-xl font-bold">Settings</h1>
 
       {/* Shop Details */}
-      <div className="bg-white rounded-xl p-4 space-y-3">
-        <h2 className="font-semibold text-sm">Shop Details</h2>
+      <div className="bg-white rounded-xl shadow-card p-4 space-y-3">
+        <h2 className="font-semibold text-sm text-gray-900">Shop Details</h2>
         <div className="space-y-3">
           <div>
             <Label>Shop Name</Label>
@@ -75,8 +75,8 @@ export default function SettingsPage() {
       </div>
 
       {/* UPI Payment */}
-      <div className="bg-white rounded-xl p-4 space-y-3">
-        <h2 className="font-semibold text-sm">UPI Payment</h2>
+      <div className="bg-white rounded-xl shadow-card p-4 space-y-3">
+        <h2 className="font-semibold text-sm text-gray-900">UPI Payment</h2>
         <div>
           <Label>UPI ID</Label>
           <div className="flex gap-2 mt-1">
@@ -106,8 +106,8 @@ export default function SettingsPage() {
       </div>
 
       {/* WhatsApp */}
-      <div className="bg-white rounded-xl p-4 space-y-3">
-        <h2 className="font-semibold text-sm">WhatsApp</h2>
+      <div className="bg-white rounded-xl shadow-card p-4 space-y-3">
+        <h2 className="font-semibold text-sm text-gray-900">WhatsApp</h2>
         <div>
           <Label>WhatsApp Number</Label>
           <Input
@@ -123,8 +123,8 @@ export default function SettingsPage() {
       </div>
 
       {/* Preferences */}
-      <div className="bg-white rounded-xl p-4 space-y-3">
-        <h2 className="font-semibold text-sm">Preferences</h2>
+      <div className="bg-white rounded-xl shadow-card p-4 space-y-3">
+        <h2 className="font-semibold text-sm text-gray-900">Preferences</h2>
         <div>
           <Label>Low Stock Threshold</Label>
           <Input
@@ -156,7 +156,7 @@ export default function SettingsPage() {
 
       <Separator />
 
-      <Button className="w-full h-12" onClick={handleSave}>
+      <Button className="w-full h-12 rounded-full shadow-lg" onClick={handleSave}>
         Save Settings
       </Button>
 

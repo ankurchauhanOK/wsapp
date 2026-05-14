@@ -54,12 +54,12 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="p-4 space-y-4 max-w-4xl mx-auto">
+      <div className="p-4 space-y-4 max-w-5xl mx-auto">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-100 rounded w-1/3" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 bg-gray-100 rounded-xl" />
+              <div key={i} className="h-28 bg-gray-100 rounded-xl" />
             ))}
           </div>
         </div>
@@ -68,11 +68,12 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="p-4 space-y-6 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between">
+    <div className="p-4 space-y-6 max-w-5xl mx-auto">
+      {/* Dark Green Feature Band Header */}
+      <div className="bg-green-700 rounded-2xl p-5 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold">Dashboard</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-white/70 mt-0.5">
             {new Date().toLocaleDateString("en-IN", {
               weekday: "long",
               day: "numeric",
@@ -81,15 +82,15 @@ export default function AdminDashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Store className={`h-4 w-4 ${isOpen ? "text-green-600" : "text-red-400"}`} />
-            <span className={`text-xs font-medium ${isOpen ? "text-green-600" : "text-red-400"}`}>
-              {isOpen ? "Open" : "Closed"}
+          <div className="flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5">
+            <Store className={`h-4 w-4 ${isOpen ? "text-green-300" : "text-amber-300"}`} />
+            <span className={`text-xs font-semibold ${isOpen ? "text-white" : "text-amber-200"}`}>
+              {isOpen ? "Store Open" : "Store Closed"}
             </span>
             <Switch checked={isOpen} onCheckedChange={toggle} className="scale-75" />
           </div>
           <Link href="/admin/scanner/billing">
-            <Button className="gap-2">
+            <Button variant="white-on-green" size="sm" className="gap-2">
               <Scan className="h-4 w-4" />
               Billing
             </Button>
@@ -101,64 +102,72 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <ShoppingCart className="h-5 w-5 text-green-600" />
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center">
+                <ShoppingCart className="h-5 w-5 text-green-600" />
+              </div>
             </div>
-            <p className="text-2xl font-bold">{stats?.todayOrders || 0}</p>
-            <p className="text-xs text-gray-500">Today&apos;s Orders</p>
+            <p className="text-2xl font-bold text-gray-900">{stats?.todayOrders || 0}</p>
+            <p className="text-xs text-gray-500 mt-0.5">Today&apos;s Orders</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+              </div>
             </div>
-            <p className="text-2xl font-bold">
+            <p className="text-2xl font-bold text-gray-900">
               {formatPrice(stats?.todaySales || 0)}
             </p>
-            <p className="text-xs text-gray-500">Today&apos;s Sales</p>
+            <p className="text-xs text-gray-500 mt-0.5">Today&apos;s Sales</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <AlertTriangle className="h-5 w-5 text-amber-600" />
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-9 h-9 rounded-full bg-amber-50 flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+              </div>
             </div>
             <p className="text-2xl font-bold text-amber-600">
               {stats?.lowStockCount || 0}
             </p>
-            <p className="text-xs text-gray-500">Low Stock Items</p>
+            <p className="text-xs text-gray-500 mt-0.5">Low Stock Items</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <Package className="h-5 w-5 text-purple-600" />
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center">
+                <Package className="h-5 w-5 text-green-600" />
+              </div>
             </div>
-            <p className="text-2xl font-bold">{stats?.totalProducts || 0}</p>
-            <p className="text-xs text-gray-500">Total Products</p>
+            <p className="text-2xl font-bold text-gray-900">{stats?.totalProducts || 0}</p>
+            <p className="text-xs text-gray-500 mt-0.5">Total Products</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-3">
         <Link href="/admin/products/new">
-          <Button variant="outline" className="w-full h-20 flex-col gap-1">
+          <Button variant="outline" className="w-full h-20 flex-col gap-1 rounded-xl border-gray-200">
             <Plus className="h-5 w-5" />
-            <span className="text-xs">Add Product</span>
+            <span className="text-xs font-medium">Add Product</span>
           </Button>
         </Link>
         <Link href="/admin/scanner/inventory">
-          <Button variant="outline" className="w-full h-20 flex-col gap-1">
+          <Button variant="outline" className="w-full h-20 flex-col gap-1 rounded-xl border-gray-200">
             <Scan className="h-5 w-5" />
-            <span className="text-xs">Scan Stock</span>
+            <span className="text-xs font-medium">Scan Stock</span>
           </Button>
         </Link>
         <Link href="/admin/orders">
-          <Button variant="outline" className="w-full h-20 flex-col gap-1">
+          <Button variant="outline" className="w-full h-20 flex-col gap-1 rounded-xl border-gray-200">
             <ShoppingCart className="h-5 w-5" />
-            <span className="text-xs">Orders</span>
+            <span className="text-xs font-medium">Orders</span>
           </Button>
         </Link>
       </div>
@@ -166,34 +175,34 @@ export default function AdminDashboardPage() {
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Recent Orders */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">Recent Orders</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm text-gray-900">Recent Orders</CardTitle>
             <Link
               href="/admin/orders"
-              className="text-xs text-green-600 flex items-center gap-1"
+              className="text-xs text-green-600 flex items-center gap-1 font-medium"
             >
               View all <ArrowRight className="h-3 w-3" />
             </Link>
           </CardHeader>
           <CardContent>
             {stats?.recentOrders?.length ? (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {stats.recentOrders.slice(0, 5).map((order) => (
                   <div
                     key={order.id}
-                    className="flex items-center justify-between text-sm cursor-pointer hover:bg-gray-50 -mx-4 px-4 py-2 rounded-lg"
+                    className="flex items-center justify-between text-sm cursor-pointer hover:bg-gray-50 -mx-4 px-4 py-2.5 rounded-xl transition-colors"
                     onClick={() => router.push(`/admin/orders/${order.id}`)}
                   >
                     <div>
-                      <p className="font-medium text-xs">
+                      <p className="font-medium text-xs text-gray-900">
                         #{order.id.slice(0, 8).toUpperCase()}
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-500">
                         {formatDate(order.created_at)} {formatTime(order.created_at)}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">{formatPrice(order.total)}</p>
+                      <p className="font-semibold text-gray-900">{formatPrice(order.total)}</p>
                       <Badge
                         variant={
                           order.status === "delivered"
@@ -202,7 +211,7 @@ export default function AdminDashboardPage() {
                               ? "destructive"
                               : "warning"
                         }
-                        className="text-[9px]"
+                        className="text-[9px] mt-0.5"
                       >
                         {order.status}
                       </Badge>
@@ -211,7 +220,7 @@ export default function AdminDashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-400 text-center py-4">
+              <p className="text-sm text-gray-500 text-center py-4">
                 No orders today
               </p>
             )}
@@ -220,27 +229,27 @@ export default function AdminDashboardPage() {
 
         {/* Low Stock Alerts */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">Low Stock Alerts</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm text-gray-900">Low Stock Alerts</CardTitle>
             <Link
               href="/admin/alerts"
-              className="text-xs text-green-600 flex items-center gap-1"
+              className="text-xs text-green-600 flex items-center gap-1 font-medium"
             >
               View all <ArrowRight className="h-3 w-3" />
             </Link>
           </CardHeader>
           <CardContent>
             {stats?.lowStockProducts?.length ? (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {stats.lowStockProducts.slice(0, 5).map((product) => (
                   <div
                     key={product.id}
-                    className="flex items-center justify-between text-sm cursor-pointer hover:bg-gray-50 -mx-4 px-4 py-2 rounded-lg"
+                    className="flex items-center justify-between text-sm cursor-pointer hover:bg-gray-50 -mx-4 px-4 py-2.5 rounded-xl transition-colors"
                     onClick={() =>
                       router.push(`/admin/products/${product.id}`)
                     }
                   >
-                    <span className="font-medium text-xs">{product.name}</span>
+                    <span className="font-medium text-xs text-gray-900">{product.name}</span>
                     <span className="text-xs text-amber-600 font-semibold">
                       {product.stock} left
                     </span>
@@ -248,7 +257,7 @@ export default function AdminDashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-400 text-center py-4">
+              <p className="text-sm text-gray-500 text-center py-4">
                 All items well stocked
               </p>
             )}

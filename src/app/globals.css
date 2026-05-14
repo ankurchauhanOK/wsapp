@@ -1,19 +1,78 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #ffffff;
-  --color-foreground: #171717;
-  --font-sans: var(--font-geist-sans);
+  --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: var(--font-geist-mono);
+
+  /* Warm Neutral Canvas & Text (mapped to gray scale for seamless adoption) */
+  --color-gray-50: #f2f0eb;
+  --color-gray-100: #edebe9;
+  --color-gray-200: #d6dbde;
+  --color-gray-300: #cdc9c4;
+  --color-gray-400: #a09c98;
+  --color-gray-500: rgba(0, 0, 0, 0.58);
+  --color-gray-600: rgba(0, 0, 0, 0.87);
+  --color-gray-700: #1e3932;
+  --color-gray-800: #16322b;
+  --color-gray-900: #0f1b18;
+  --color-gray-950: #0a1210;
+
+  /* Starbucks Four-Tier Green System */
+  --color-green-50: #d4e9e2;
+  --color-green-100: #c2dfd6;
+  --color-green-200: #b0d5ca;
+  --color-green-300: #8ec1b2;
+  --color-green-400: #6aad94;
+  --color-green-500: #006241; /* Starbucks Green — headings */
+  --color-green-600: #00754a; /* Green Accent — CTAs */
+  --color-green-700: #1e3932; /* House Green — dark bands */
+  --color-green-800: #2b5148; /* Green Uplift — decorative */
+  --color-green-900: #16322b;
+
+  /* Rewards Gold */
+  --color-amber-100: #faf6ee;
+  --color-amber-200: #dfc49d;
+  --color-amber-500: #cba258;
+  --color-amber-600: #cba258;
+
+  /* Destructive / Error */
+  --color-red-500: #c82014;
+  --color-red-600: #b01c11;
+
+  /* Surfaces */
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* Shadows (whisper-soft layered) */
+  --shadow-card: 0px 0px 0.5px 0px rgba(0, 0, 0, 0.14), 0px 1px 1px 0px rgba(0, 0, 0, 0.24);
+  --shadow-nav: 0 1px 3px rgba(0, 0, 0, 0.1), 0 2px 2px rgba(0, 0, 0, 0.06), 0 0 2px rgba(0, 0, 0, 0.07);
+  --shadow-frap: 0 0 6px rgba(0, 0, 0, 0.24), 0 8px 12px rgba(0, 0, 0, 0.14);
+  --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 body {
-  background: #f9fafb;
-  color: #171717;
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background: #f2f0eb;
+  color: rgba(0, 0, 0, 0.87);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
 }
 
+/* Utilities */
+.shadow-card {
+  box-shadow: 0px 0px 0.5px 0px rgba(0, 0, 0, 0.14), 0px 1px 1px 0px rgba(0, 0, 0, 0.24);
+}
+.shadow-nav {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 2px 2px rgba(0, 0, 0, 0.06), 0 0 2px rgba(0, 0, 0, 0.07);
+}
+.shadow-frap {
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.24), 0 8px 12px rgba(0, 0, 0, 0.14);
+}
+.shadow-frap-active {
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.24), 0 8px 12px rgba(0, 0, 0, 0);
+}
+
+/* Scrollbar hide utility */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
@@ -22,25 +81,43 @@ body {
   scrollbar-width: none;
 }
 
+/* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out;
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .animate-slide-up {
   animation: slideUp 0.3s ease-out;
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 .animate-pulse-dot {
   animation: pulse-dot 1.5s ease-in-out infinite;
