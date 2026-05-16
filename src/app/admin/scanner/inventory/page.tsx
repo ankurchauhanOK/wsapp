@@ -50,31 +50,34 @@ export default function InventoryScannerPage() {
 
   const handleScanResult = useCallback(
     (result: any) => {
+      setShowScanner(false); // Close scanner overlay
+
       if (result.type === "product") {
-        setScanState({ type: "product", product: result.product });
-        setAdjustQty(1);
-        setReason("stock_in");
+        // Product exists - redirect to edit page
         toast({
-          title: result.product.name,
-          description: "Tap Save Stock Update to adjust quantity",
+          title: "Product found!",
+          description: `${result.product.name} - opening edit page...`,
           variant: "success",
         });
+        router.push(`/admin/products/${result.product.id}`);
       } else if (result.type === "not_found") {
-        setScanState({ type: "not_found", barcode: result.barcode });
+        // New product - redirect to add page with barcode prefilled
         toast({
-          title: "Product not found",
-          description: `Barcode: ${result.barcode}`,
-          variant: "error",
+          title: "New product",
+          description: `Barcode: ${result.barcode} - opening add page...`,
+          variant: "info",
         });
+        router.push(`/admin/products/new?barcode=${encodeURIComponent(result.barcode)}`);
       } else if (result.type === "error") {
+        // Lookup failed - stay on this page, show error
         toast({
           title: "Scan failed",
-          description: result.message || "Could not look up product",
+          description: result.message || "Could not look up product. Try again.",
           variant: "error",
         });
       }
     },
-    [toast]
+    [toast, router]
   );
 
   // Fetch categories when showing "not found" so user can pick a category

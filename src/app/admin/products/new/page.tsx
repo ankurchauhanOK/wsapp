@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,9 +14,14 @@ import type { Category } from "@/types";
 
 export default function NewProductPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
   const [saving, setSaving] = useState(false);
+
+  // Pre-fill barcode from scanner redirect
+  const prefillBarcode = searchParams.get("barcode") || "";
+
   const [form, setForm] = useState({
     name: "",
     category_id: "",
@@ -25,7 +30,7 @@ export default function NewProductPage() {
     price: "",
     stock: "",
     low_stock_threshold: "10",
-    barcode: "",
+    barcode: prefillBarcode,
     internal_code: generateBarcode(),
     notes: "",
     active: true,
