@@ -9,10 +9,14 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
+    const subcategory = searchParams.get("subcategory");
     const search = searchParams.get("search");
     const ids = searchParams.get("ids");
+    const brand = searchParams.get("brand");
+    const tag = searchParams.get("tag");
     const includeOos = searchParams.get("include_oos") === "true";
 
+    // Use simpler select that only joins categories (subcategories table may not exist)
     let query = supabase()
       .from("products")
       .select("*, category:categories(*)")
@@ -21,7 +25,10 @@ export async function GET(req: NextRequest) {
       .order("name");
 
     if (category) query = query.eq("category_id", category);
+    if (subcategory) query = query.eq("subcategory_id", subcategory);
     if (search) query = query.ilike("name", `%${search}%`);
+    if (brand) query = query.ilike("brand", `%${brand}%`);
+    if (tag) query = query.ilike("tags", `%${tag}%`);
     if (ids) {
       const idArr = ids.split(",");
       query = query.in("id", idArr);

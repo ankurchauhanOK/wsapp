@@ -16,24 +16,33 @@ import {
   ArrowRight,
   Scan,
   Plus,
+  Minus,
   Store,
+  Warehouse,
+  Clock,
+  Barcode,
+  History,
 } from "lucide-react";
 import Link from "next/link";
-import type { Order, Product } from "@/types";
+import type { Order, Product, InventoryTransaction } from "@/types";
 
 interface DashboardStats {
   todayOrders: number;
   todaySales: number;
   lowStockCount: number;
+  outOfStockCount: number;
+  expiringCount: number;
   totalProducts: number;
   pendingOrders: number;
   recentOrders: Order[];
   lowStockProducts: Product[];
+  recentMovements: InventoryTransaction[];
 }
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { isOpen, toggle } = useStoreStatusStore();
 
@@ -42,9 +51,14 @@ export default function AdminDashboardPage() {
       try {
         const res = await fetch("/api/admin/stats");
         const data = await res.json();
-        setStats(data);
-      } catch (e) {
+        if (!res.ok || data.error) {
+          setError(data.error || "Failed to load stats");
+        } else {
+          setStats(data);
+        }
+      } catch (e: any) {
         console.error(e);
+        setError(e?.message || "Network error");
       } finally {
         setLoading(false);
       }
@@ -63,6 +77,23 @@ export default function AdminDashboardPage() {
             ))}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 max-w-5xl mx-auto text-center py-16">
+        <Package className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+        <p className="font-medium text-gray-900">Something went wrong</p>
+        <p className="text-sm text-gray-500 mt-1">{error}</p>
+        <Button
+          variant="outline"
+          className="mt-4 rounded-full"
+          onClick={() => window.location.reload()}
+        >
+          Reload Page
+        </Button>
       </div>
     );
   }
@@ -140,18 +171,20 @@ export default function AdminDashboardPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center">
-                <Package className="h-5 w-5 text-green-600" />
+              <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center">
+                <Package className="h-5 w-5 text-red-500" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stats?.totalProducts || 0}</p>
-            <p className="text-xs text-gray-500 mt-0.5">Total Products</p>
+            <p className="text-2xl font-bold text-red-600">
+              {stats?.outOfStockCount || 0}
+            </p>
+            <p className="text-xs text-gray-500 mt-0.5">Out of Stock</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Link href="/admin/products/new">
           <Button variant="outline" className="w-full h-20 flex-col gap-1 rounded-xl border-gray-200">
             <Plus className="h-5 w-5" />
@@ -160,8 +193,14 @@ export default function AdminDashboardPage() {
         </Link>
         <Link href="/admin/scanner/inventory">
           <Button variant="outline" className="w-full h-20 flex-col gap-1 rounded-xl border-gray-200">
-            <Scan className="h-5 w-5" />
+            <Barcode className="h-5 w-5" />
             <span className="text-xs font-medium">Scan Stock</span>
+          </Button>
+        </Link>
+        <Link href="/admin/inventory">
+          <Button variant="outline" className="w-full h-20 flex-col gap-1 rounded-xl border-gray-200">
+            <Warehouse className="h-5 w-5" />
+            <span className="text-xs font-medium">Inventory</span>
           </Button>
         </Link>
         <Link href="/admin/orders">
@@ -208,8 +247,8 @@ export default function AdminDashboardPage() {
                           order.status === "delivered"
                             ? "default"
                             : order.status === "cancelled"
-                              ? "destructive"
-                              : "warning"
+                            ? "destructive"
+                            : "warning"
                         }
                         className="text-[9px] mt-0.5"
                       >
@@ -245,9 +284,7 @@ export default function AdminDashboardPage() {
                   <div
                     key={product.id}
                     className="flex items-center justify-between text-sm cursor-pointer hover:bg-gray-50 -mx-4 px-4 py-2.5 rounded-xl transition-colors"
-                    onClick={() =>
-                      router.push(`/admin/products/${product.id}`)
-                    }
+                    onClick={() => router.push(`/admin/products/${product.id}`)}
                   >
                     <span className="font-medium text-xs text-gray-900">{product.name}</span>
                     <span className="text-xs text-amber-600 font-semibold">
@@ -264,6 +301,55 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Recent Stock Movements */}
+      {stats?.recentMovements && stats.recentMovements.length > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm text-gray-900">Recent Stock Movements</CardTitle>
+            <Link
+              href="/admin/inventory"
+              className="text-xs text-green-600 flex items-center gap-1 font-medium"
+            >
+              View all <ArrowRight className="h-3 w-3" />
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1">
+              {stats.recentMovements.slice(0, 5).map((tx) => (
+                <div
+                  key={tx.id}
+                  className="flex items-center justify-between text-sm py-2 border-b border-gray-50 last:border-0"
+                >
+                  <div className="flex items-center gap-2">
+                    {tx.quantity_change > 0 ? (
+                      <Plus className="h-3 w-3 text-green-600" />
+                    ) : (
+                      <Minus className="h-3 w-3 text-red-500" />
+                    )}
+                    <span className="text-xs text-gray-900">
+                      {tx.product?.name || "Unknown Product"}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span
+                      className={`text-xs font-semibold ${
+                        tx.quantity_change > 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {tx.quantity_change > 0 ? "+" : ""}
+                      {tx.quantity_change}
+                    </span>
+                    <span className="text-[10px] text-gray-400 ml-2">
+                      {formatTime(tx.created_at)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

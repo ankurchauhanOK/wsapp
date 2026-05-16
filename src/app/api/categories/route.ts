@@ -7,14 +7,34 @@ const SHOP_ID = process.env.SHOP_ID || "default";
 
 export async function GET() {
   try {
-    const { data, error } = await supabase()
+    const { data: categories, error: catError } = await supabase()
       .from("categories")
       .select("*")
       .eq("shop_id", SHOP_ID)
       .order("sort_order");
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json(data || []);
+    if (catError) return NextResponse.json({ error: catError.message }, { status: 500 });
+
+    // Try to fetch subcategories, but don't fail if table doesn't exist
+    let subcategories: any[] = [];
+    try {
+      const { data: subs } = await supabase()
+        .from("subcategories")
+        .select("*")
+        .eq("shop_id", SHOP_ID)
+        .order("sort_order");
+      if (subs) subcategories = subs;
+    } catch {
+      // subcategories table may not exist
+    }
+
+    // Attach subcategories to categories
+    const categoriesWithSubs = (categories || []).map((cat: any) => ({
+      ...cat,
+      subcategories: subcategories.filter((sub: any) => sub.category_id === cat.id),
+    }));
+
+    return NextResponse.json(categoriesWithSubs);
   } catch (error) {
     return withError(error);
   }

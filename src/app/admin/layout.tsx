@@ -20,11 +20,13 @@ import {
   Megaphone,
   Barcode,
   Bot,
+  Warehouse,
 } from "lucide-react";
 import { useState } from "react";
 
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/inventory", label: "Inventory", icon: Warehouse },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { href: "/admin/scanner/inventory", label: "Inventory Scan", icon: Scan },

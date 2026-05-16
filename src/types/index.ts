@@ -39,6 +39,15 @@ export interface Shop {
   updated_at: string;
 }
 
+export interface SubCategory {
+  id: string;
+  category_id: string;
+  name: string;
+  image?: string;
+  sort_order: number;
+  created_at?: string;
+}
+
 export interface Category {
   id: string;
   shop_id: string;
@@ -46,30 +55,45 @@ export interface Category {
   image?: string;
   sort_order: number;
   created_at: string;
+  // Enhanced fields for discovery
+  popularity_score?: number;
+  sales_count?: number;
+  parent_id?: string | null;
+  is_active?: boolean;
+  subcategories?: SubCategory[];
 }
 
 export interface Product {
   id: string;
   shop_id: string;
   category_id: string;
+  subcategory_id?: string;
   name: string;
   image?: string;
   description?: string;
   type: ProductType;
   unit_type: UnitType;
   price: number;
+  mrp?: number;
   stock: number;
   low_stock_threshold: number;
   barcode?: string;
   internal_code?: string;
   sku?: string;
+  brand?: string;
+  tags?: string; // comma separated e.g. "Bought Earlier,No Maida,Offer"
+  weight_grams?: number;
   expiry_date?: string;
   notes?: string;
   active: boolean;
   is_favorite?: boolean;
+  // Discovery & ranking
+  popularity_score?: number;
+  sales_count?: number;
   created_at: string;
   updated_at: string;
   category?: Category;
+  subcategory?: SubCategory;
 }
 
 export interface InventoryTransaction {
@@ -179,4 +203,24 @@ export interface Settings {
 export interface CartItem {
   product: Product;
   quantity: number;
+}
+
+// Frontend-specific types
+export type FilterTag =
+  | "Brand"
+  | "Pack size"
+  | "Weight"
+  | "Organic"
+  | "New arrivals"
+  | "Offers"
+  | "No Maida"
+  | "Family pack"
+  | "Budget pack";
+
+export interface FrequentlyBoughtBundle {
+  id: string;
+  name: string;
+  images: string[];
+  product_count: number;
+  category_id: string;
 }

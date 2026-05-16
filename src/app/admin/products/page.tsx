@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,25 +14,38 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    loadProducts();
-  }, [search]);
-
-  async function loadProducts() {
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       const res = await fetch(`/api/products?${params}`);
       const data = await res.json();
-      setProducts(data);
-    } catch (e) {
+      
+      // Defensive: API may return { error: ... } if DB is missing tables
+      if (!res.ok || !Array.isArray(data)) {
+        console.error("Products API error:", data);
+        setError(typeof data?.error === "string" ? data.error : "Failed to load products");
+        setProducts([]);
+      } else {
+        setProducts(data);
+      }
+    } catch (e: any) {
       console.error(e);
+      setError(e?.message || "Network error");
+      setProducts([]);
     } finally {
       setLoading(false);
     }
-  }
+  }, [search]);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   return (
     <div className="p-4 space-y-4 max-w-5xl mx-auto">
@@ -60,6 +73,19 @@ export default function AdminProductsPage() {
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
           ))}
+        </div>
+      ) : error ? (
+        <div className="text-center py-12 text-gray-500">
+          <Package className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+          <p className="font-medium text-gray-900">Something went wrong</p>
+          <p className="text-sm mt-1">{error}</p>
+          <Button
+            variant="outline"
+            className="mt-4 rounded-full"
+            onClick={loadProducts}
+          >
+            Try Again
+          </Button>
         </div>
       ) : products.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
