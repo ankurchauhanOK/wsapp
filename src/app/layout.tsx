@@ -16,14 +16,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kiranax Admin",
+  title: "Kiranax — Your Local Grocery Store",
   description:
-    "Inventory, billing & store management for your local grocery store.",
+    "Order groceries online from your local store. Fresh vegetables, fruits, dairy & more.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Kiranax Admin",
+    title: "Kiranax",
     startupImage: [
       {
         url: "/icons/icon-512.png",

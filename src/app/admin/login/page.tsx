@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toaster";
 import { Lock } from "lucide-react";
+import { PWAInstallPrompt } from "@/components/admin/PWAInstallPrompt";
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
@@ -83,6 +84,8 @@ export default function AdminLoginPage() {
           Default password: admin123
         </p>
       </div>
+
+      <PWAInstallPrompt context="admin" />
     </div>
   );
 }

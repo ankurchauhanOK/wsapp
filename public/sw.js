@@ -1,6 +1,9 @@
 const CACHE_NAME = "kiranax-admin-v1";
 const STATIC_ASSETS = [
   "/",
+  "/store",
+  "/store/categories",
+  "/store/cart",
   "/admin/dashboard",
   "/admin/inventory",
   "/admin/products",

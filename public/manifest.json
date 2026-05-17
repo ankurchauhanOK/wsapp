@@ -1,15 +1,15 @@
 {
-  "name": "Kiranax Admin",
-  "short_name": "Kiranax Admin",
-  "description": "Inventory, billing & store management for Kiranax",
-  "start_url": "/admin/dashboard",
+  "name": "Kiranax",
+  "short_name": "Kiranax",
+  "description": "Your local grocery store — order fresh veggies, fruits, dairy & more",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "background_color": "#f2f0eb",
   "theme_color": "#00754a",
   "orientation": "portrait",
-  "categories": ["business", "productivity", "utilities"],
+  "categories": ["shopping", "food", "lifestyle"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -42,10 +42,31 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Kiranax Admin Dashboard"
+      "label": "Kiranax Store"
     }
   ],
   "shortcuts": [
+    {
+      "name": "Store",
+      "short_name": "Store",
+      "description": "Browse products",
+      "url": "/store",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Cart",
+      "short_name": "Cart",
+      "description": "View your cart",
+      "url": "/store/cart",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Admin Dashboard",
+      "short_name": "Admin",
+      "description": "Store management",
+      "url": "/admin/dashboard",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
     {
       "name": "Billing Scanner",
       "short_name": "Billing",
@@ -58,13 +79,6 @@
       "short_name": "Inventory",
       "description": "Scan to update stock",
       "url": "/admin/scanner/inventory",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Orders",
-      "short_name": "Orders",
-      "description": "View recent orders",
-      "url": "/admin/orders",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
