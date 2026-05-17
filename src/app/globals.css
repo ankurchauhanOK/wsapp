@@ -143,3 +143,36 @@ body {
 .animate-scan-line {
   animation: scanLine 2s ease-in-out infinite;
 }
+
+/* Safe area utilities for notched phones */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-area-pb {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+.safe-area-pt {
+  padding-top: max(8px, env(safe-area-inset-top));
+}
+
+/* PWA standalone mode optimizations */
+@media (display-mode: standalone) {
+  body {
+    /* Prevent pull-to-refresh and overscroll in standalone mode */
+    overscroll-behavior-y: none;
+  }
+}
+
+/* Prevent text selection on interactive elements for app-like feel */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Touch action optimization for scanner */
+.touch-none {
+  touch-action: none;
+}

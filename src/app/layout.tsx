@@ -16,14 +16,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kiranax — Your Local Grocery Store",
+  title: "Kiranax Admin",
   description:
-    "Order groceries online from your local store. Fresh vegetables, fruits, dairy & more delivered to your doorstep.",
+    "Inventory, billing & store management for your local grocery store.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "Kiranax",
+    statusBarStyle: "black-translucent",
+    title: "Kiranax Admin",
+    startupImage: [
+      {
+        url: "/icons/icon-512.png",
+        media: "(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)",
+      },
+    ],
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/icon-192.png" }],
   },
 };
 
@@ -31,7 +44,9 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false,
   themeColor: "#00754a",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

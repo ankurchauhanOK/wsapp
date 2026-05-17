@@ -271,7 +271,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   // Manual entry screen
   if (phase === "choose" || phase === "not_found") {
     return (
-      <div className="fixed inset-0 z-50 bg-black flex flex-col">
+      <div className="fixed inset-0 z-50 bg-black flex flex-col no-select">
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <h2 className="text-white font-semibold text-lg">
             {phase === "not_found" ? "Barcode Not Found" : "Scan Product"}
@@ -349,7 +349,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
   // Camera screen
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+    <div className="fixed inset-0 z-50 bg-black flex flex-col no-select">
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
         <div className="flex items-center gap-2">

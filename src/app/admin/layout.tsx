@@ -23,6 +23,8 @@ import {
   Warehouse,
 } from "lucide-react";
 import { useState } from "react";
+import { AdminBottomNav } from "@/components/admin/BottomNav";
+import { PWAInstallPrompt } from "@/components/admin/PWAInstallPrompt";
 
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -50,13 +52,32 @@ export default function AdminLayout({
 
   const isBillingPage = pathname === "/admin/scanner/billing";
   const isLoginPage = pathname === "/admin/login";
+  const isScannerPage = pathname.startsWith("/admin/scanner/");
   const showFab = !isBillingPage && !isLoginPage;
+  // On mobile, hide FAB when bottom nav is present (scanner pages are fullscreen-ish)
+  const showBottomNav = !isLoginPage && !isScannerPage;
+  // Hide global mobile header on scanner pages for immersive experience
+  const showMobileHeader = !isLoginPage && !isScannerPage;
 
   useEffect(() => {
     if (!isAuthenticated && pathname !== "/admin/login") {
       router.push("/admin/login");
     }
   }, [isAuthenticated, pathname, router]);
+
+  // Register service worker for PWA
+  useEffect(() => {
+    if ("serviceWorker" in navigator && typeof window !== "undefined") {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/", updateViaCache: "none" })
+        .then((reg) => {
+          console.log("[PWA] Service Worker registered:", reg.scope);
+        })
+        .catch((err) => {
+          console.error("[PWA] Service Worker registration failed:", err);
+        });
+    }
+  }, []);
 
   if (pathname === "/admin/login") {
     return <>{children}</>;
@@ -67,14 +88,27 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white shadow-nav h-16 flex items-center justify-between px-4">
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1 -ml-1 rounded-lg hover:bg-gray-100 transition-colors">
-          {sidebarOpen ? <X className="h-5 w-5 text-gray-700" /> : <Menu className="h-5 w-5 text-gray-700" />}
+      <div className={cn(
+        "lg:hidden fixed top-0 left-0 right-0 z-50 bg-white shadow-nav h-14 safe-area-pt flex items-center justify-between px-4 transition-transform",
+        !showMobileHeader && "-translate-y-full pointer-events-none"
+      )}>
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-1 -ml-1 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          {sidebarOpen ? (
+            <X className="h-5 w-5 text-gray-700" />
+          ) : (
+            <Menu className="h-5 w-5 text-gray-700" />
+          )}
         </button>
         <Link href="/admin/dashboard" className="font-semibold text-sm text-gray-900">
           Kiranax Admin
         </Link>
-        <button onClick={logout} className="p-1 -mr-1 rounded-lg hover:bg-gray-100 transition-colors">
+        <button
+          onClick={logout}
+          className="p-1 -mr-1 rounded-lg hover:bg-gray-100 transition-colors"
+        >
           <LogOut className="h-5 w-5 text-gray-400" />
         </button>
       </div>
@@ -112,13 +146,15 @@ export default function AdminLayout({
                     : "text-gray-600 hover:bg-gray-100"
                 )}
               >
-                <item.icon className={cn("h-5 w-5", active ? "text-green-600" : "text-gray-400")} />
+                <item.icon
+                  className={cn("h-5 w-5", active ? "text-green-600" : "text-gray-400")}
+                />
                 {item.label}
               </Link>
             );
           })}
         </nav>
-        <div className="absolute bottom-4 left-3 right-3">
+        <div className="absolute bottom-4 left-3 right-3 safe-area-pb">
           <Button
             variant="outline"
             className="w-full justify-start text-gray-500 rounded-full border-gray-200"
@@ -139,18 +175,30 @@ export default function AdminLayout({
       )}
 
       {/* Main Content */}
-      <main className="lg:ml-64 pt-16 lg:pt-0 min-h-screen">
+      <main
+        className={cn(
+          "lg:ml-64 min-h-screen",
+          showMobileHeader && "pt-14 lg:pt-0",
+          showBottomNav && "pb-20"
+        )}
+      >
         {children}
       </main>
 
-      {/* Quick Sell FAB — Frap style */}
+      {/* Quick Sell FAB — hidden on mobile when bottom nav is present */}
       {showFab && (
-        <Link href="/admin/scanner/billing">
+        <Link href="/admin/scanner/billing" className="hidden lg:block">
           <button className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-green-600 text-white shadow-frap flex items-center justify-center hover:bg-green-700 active:scale-95 active:shadow-frap-active transition-all">
             <Barcode className="h-6 w-6" />
           </button>
         </Link>
       )}
+
+      {/* Mobile Bottom Navigation */}
+      {showBottomNav && <AdminBottomNav />}
+
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
     </div>
   );
 }

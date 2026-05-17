@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#00754a">
+  <title>Offline - Kiranax Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f2f0eb;
+      color: rgba(0,0,0,0.87);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: 24px;
+      text-align: center;
+    }
+    .icon {
+      width: 80px;
+      height: 80px;
+      background: #00754a;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0,117,74,0.25);
+    }
+    .icon span {
+      color: white;
+      font-size: 40px;
+      font-weight: bold;
+    }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    p { font-size: 15px; color: rgba(0,0,0,0.58); line-height: 1.5; margin-bottom: 24px; max-width: 280px; }
+    .btn {
+      background: #00754a;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { transform: scale(0.98); opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="icon"><span>K</span></div>
+  <h1>You are offline</h1>
+  <p>Kiranax Admin needs an internet connection to sync inventory and process orders.</p>
+  <button class="btn" onclick="window.location.reload()">Try Again</button>
+</body>
+</html>
