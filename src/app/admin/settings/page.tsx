@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/toaster";
 import { useQRCode } from "@/hooks/useQRCode";
 import { SHOP_NAME, SHOP_PHONE, SHOP_ADDRESS, UPI_ID, WHATSAPP_NUMBER } from "@/lib/constants";
-import { Smartphone, Copy, Check } from "lucide-react";
+import { Smartphone, Copy, Check, Download, Share2 } from "lucide-react";
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -154,6 +154,12 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Install App */}
+      <div className="bg-white rounded-xl shadow-card p-4 space-y-3">
+        <h2 className="font-semibold text-sm text-gray-900">App</h2>
+        <InstallAppRow />
+      </div>
+
       <Separator />
 
       <Button className="w-full h-12 rounded-full shadow-lg" onClick={handleSave}>
@@ -166,6 +172,76 @@ export default function SettingsPage() {
           WhatsApp-First Grocery Commerce System
         </p>
       </div>
+    </div>
+  );
+}
+
+function InstallAppRow() {
+  const [isIOS, setIsIOS] = useState(false);
+  const [showIOSHelp, setShowIOSHelp] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    setIsIOS(ios);
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+            <Download className="h-5 w-5 text-green-600" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-900">Install Kiranax</p>
+            <p className="text-xs text-gray-500">Add to home screen</p>
+          </div>
+        </div>
+        {isIOS ? (
+          <button
+            onClick={() => setShowIOSHelp((s) => !s)}
+            className="text-sm font-semibold text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-50 transition-colors"
+          >
+            {showIOSHelp ? "Hide" : "How to install"}
+          </button>
+        ) : deferredPrompt ? (
+          <button
+            onClick={handleInstall}
+            className="text-sm font-semibold text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-50 transition-colors"
+          >
+            Install
+          </button>
+        ) : (
+          <span className="text-xs text-gray-400">Open in Chrome</span>
+        )}
+      </div>
+      {isIOS && showIOSHelp && (
+        <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
+          <div className="flex items-center gap-2 mb-2">
+            <Share2 className="h-4 w-4 text-amber-600" />
+            <span className="text-xs font-semibold text-amber-800">Step 1: Tap the share button in Safari</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg leading-none text-amber-600">+</span>
+            <span className="text-xs font-semibold text-amber-800">Step 2: Scroll down and tap "Add to Home Screen"</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

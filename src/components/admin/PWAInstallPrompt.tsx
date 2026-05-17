@@ -81,7 +81,7 @@ export function PWAInstallPrompt({ context = "admin" }: InstallPromptProps) {
     : "Order groceries faster from your home screen";
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-[60] max-w-sm mx-auto animate-slide-up">
+    <div className="fixed bottom-20 left-4 right-4 z-[60] max-w-sm mx-auto animate-slide-up">
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4">
         <div className="flex items-start gap-3">
           <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
