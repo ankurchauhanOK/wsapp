@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toaster";
-import { X, Keyboard, Camera, ScanLine, Loader2, CheckCircle } from "lucide-react";
+import { X, Keyboard, Camera, ScanLine, Loader2, CheckCircle, Bug } from "lucide-react";
 import type { Product } from "@/types";
 
 type ScanResult =
@@ -18,22 +18,24 @@ interface BarcodeScannerProps {
   onClose?: () => void;
 }
 
+const SCANNER_CONTAINER_ID = "html5-qrcode-scanner";
+
 export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const [phase, setPhase] = useState<ScanPhase>("choose");
   const [errorMsg, setErrorMsg] = useState("");
   const [manualCode, setManualCode] = useState("");
   const [lastBarcode, setLastBarcode] = useState("");
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const readerRef = useRef<any>(null);
+  const scannerRef = useRef<any>(null);
   const lastBarcodeRef = useRef<string>("");
   const lastScanAtRef = useRef<number>(0);
   const isSearchingRef = useRef<boolean>(false);
   const { toast } = useToast();
 
-  // Debug logger
   const log = useCallback((msg: string) => {
     console.log(`[Scanner] ${msg}`);
+    setDebugInfo((prev) => [msg, ...prev].slice(0, 20));
   }, []);
 
   const playBeep = useCallback(() => {
@@ -87,7 +89,6 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
   const handleDecodedBarcode = useCallback(
     async (barcode: string) => {
-      // Debounce: ignore same barcode within 2 seconds
       if (
         barcode === lastBarcodeRef.current &&
         Date.now() - lastScanAtRef.current < 2000
@@ -96,7 +97,6 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         return;
       }
 
-      // Ignore if already searching
       if (isSearchingRef.current) {
         log(`Already searching, ignoring: ${barcode}`);
         return;
@@ -107,14 +107,12 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       isSearchingRef.current = true;
       setLastBarcode(barcode);
 
-      // Immediate feedback
       playBeep();
       vibrate();
       log(`Decoded barcode: ${barcode}`);
 
       setPhase("searching");
 
-      // Lookup product
       const result = await lookupProduct(barcode);
 
       isSearchingRef.current = false;
@@ -147,73 +145,58 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     [lookupProduct, onScan, playBeep, vibrate, toast, log]
   );
 
+  const stopCamera = useCallback(async () => {
+    log("Stopping camera...");
+    try {
+      if (scannerRef.current) {
+        await scannerRef.current.stop();
+        await scannerRef.current.clear();
+        scannerRef.current = null;
+        log("Camera stopped and cleared");
+      }
+    } catch (e: any) {
+      log(`Stop error: ${e.message}`);
+    }
+  }, [log]);
+
   const startCamera = useCallback(async () => {
     setPhase("camera_loading");
     setErrorMsg("");
-    log("Starting ZXing camera...");
+    log("Starting camera with html5-qrcode...");
 
     try {
-      const { BrowserMultiFormatReader } = await import("@zxing/browser");
+      const { Html5Qrcode } = await import("html5-qrcode");
 
-      if (!videoRef.current) {
-        throw new Error("Video element not found");
+      const container = document.getElementById(SCANNER_CONTAINER_ID);
+      if (!container) {
+        throw new Error("Scanner container not found");
       }
 
-      log("ZXing reader created");
+      // iOS camera config: prefer back camera with continuous autofocus
+      const cameraConfig = {
+        facingMode: "environment",
+        focusMode: "continuous" as const,
+      };
 
-      // Get all video input devices and prefer back camera
-      const devices = await BrowserMultiFormatReader.listVideoInputDevices();
-      log(`Found ${devices.length} video devices`);
+      const scanner = new Html5Qrcode(SCANNER_CONTAINER_ID);
+      scannerRef.current = scanner;
 
-      let selectedDeviceId: string | undefined;
-      const backCamera = devices.find(
-        (d: any) =>
-          d.label.toLowerCase().includes("back") ||
-          d.label.toLowerCase().includes("rear") ||
-          d.label.toLowerCase().includes("environment")
-      );
-      if (backCamera) {
-        selectedDeviceId = backCamera.deviceId;
-        log(`Using back camera: ${backCamera.label}`);
-      } else if (devices.length > 0) {
-        selectedDeviceId = devices[0].deviceId;
-        log(`Using first camera: ${devices[0].label}`);
-      }
+      log("Requesting camera access...");
 
-      // Decode hints for 1D barcodes
-      const { DecodeHintType, BarcodeFormat } = await import("@zxing/library");
-      const hints = new Map();
-      // Prioritize 1D formats commonly found on grocery products
-      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-        BarcodeFormat.EAN_13,
-        BarcodeFormat.EAN_8,
-        BarcodeFormat.UPC_A,
-        BarcodeFormat.UPC_E,
-        BarcodeFormat.CODE_128,
-        BarcodeFormat.CODE_39,
-        BarcodeFormat.ITF,
-        BarcodeFormat.QR_CODE,
-      ]);
-      hints.set(DecodeHintType.TRY_HARDER, true);
-
-      // Pass hints to constructor
-      const readerWithHints = new BrowserMultiFormatReader(hints);
-      readerRef.current = readerWithHints;
-
-      // Start continuous decode
-      await readerWithHints.decodeFromVideoDevice(
-        selectedDeviceId ?? undefined,
-        videoRef.current,
-        (result: any, err: any) => {
-          if (result) {
-            const text = result.getText();
-            log(`ZXing decode success: ${text}`);
-            handleDecodedBarcode(text);
-          }
-          if (err && !(err.name === "NotFoundException")) {
-            // Only log real errors, ignore "no barcode found" spam
-            log(`ZXing decode error: ${err.name || err}`);
-          }
+      await scanner.start(
+        cameraConfig,
+        {
+          fps: 10,
+          qrbox: { width: 300, height: 120 },
+          aspectRatio: 1.0,
+          disableFlip: false,
+        },
+        (decodedText: string) => {
+          log(`html5-qrcode decoded: ${decodedText}`);
+          handleDecodedBarcode(decodedText);
+        },
+        () => {
+          // Scan failure is normal — no barcode in frame
         }
       );
 
@@ -223,13 +206,24 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       console.error("Camera start error:", err);
       log(`Camera error: ${err.message || err}`);
 
+      // Try ZXing fallback if html5-qrcode fails
+      log("Falling back to ZXing...");
+      try {
+        await startZXingFallback();
+        return;
+      } catch (fallbackErr: any) {
+        log(`ZXing fallback also failed: ${fallbackErr.message}`);
+      }
+
       let msg = err.message || "Could not start camera";
-      if (err.name === "NotAllowedError") {
-        msg = "Camera permission denied. Please allow camera access.";
-      } else if (err.name === "NotFoundError") {
+      if (err.name === "NotAllowedError" || msg.includes("Permission")) {
+        msg = "Camera permission denied. Please allow camera access in Settings > Safari > Camera.";
+      } else if (err.name === "NotFoundError" || msg.includes("No camera")) {
         msg = "No camera found on this device.";
       } else if (msg.includes("is not supported")) {
         msg = "Barcode scanning not supported on this browser.";
+      } else if (msg.includes("already scanning")) {
+        msg = "Scanner already running. Try refreshing the page.";
       }
       setErrorMsg(msg);
       setPhase("camera_error");
@@ -242,18 +236,63 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     }
   }, [handleDecodedBarcode, toast, log]);
 
-  const stopCamera = useCallback(async () => {
-    log("Stopping camera...");
-    try {
-      if (readerRef.current) {
-        await readerRef.current.reset();
-        readerRef.current = null;
-        log("Camera stopped");
+  // ZXing fallback
+  const startZXingFallback = useCallback(async () => {
+    const { BrowserMultiFormatReader } = await import("@zxing/browser");
+    const { DecodeHintType, BarcodeFormat } = await import("@zxing/library");
+
+    // Create a hidden video element
+    const video = document.createElement("video");
+    video.style.position = "fixed";
+    video.style.top = "0";
+    video.style.left = "0";
+    video.style.width = "100%";
+    video.style.height = "100%";
+    video.style.objectFit = "cover";
+    video.style.zIndex = "1";
+    video.setAttribute("playsinline", "true");
+    video.setAttribute("muted", "true");
+    video.setAttribute("autoplay", "true");
+    document.body.appendChild(video);
+
+    const hints = new Map();
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+      BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
+      BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+      BarcodeFormat.CODE_128, BarcodeFormat.CODE_39,
+      BarcodeFormat.ITF, BarcodeFormat.QR_CODE,
+    ]);
+    hints.set(DecodeHintType.TRY_HARDER, true);
+
+    const reader = new BrowserMultiFormatReader(hints);
+    scannerRef.current = {
+      stop: async () => {
+        await (reader as any).reset();
+        video.remove();
+      },
+      clear: async () => {},
+    };
+
+    const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+    const backCamera = devices.find((d: any) =>
+      d.label.toLowerCase().includes("back") ||
+      d.label.toLowerCase().includes("rear") ||
+      d.label.toLowerCase().includes("environment")
+    );
+
+    await reader.decodeFromVideoDevice(
+      backCamera?.deviceId ?? undefined,
+      video,
+      (result: any, err: any) => {
+        if (result) {
+          handleDecodedBarcode(result.getText());
+        }
       }
-    } catch (e: any) {
-      log(`Stop error: ${e.message}`);
-    }
-  }, [log]);
+    );
+
+    setPhase("camera_active");
+    log("ZXing fallback camera active");
+  }, [handleDecodedBarcode, log]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -309,7 +348,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
             <button
               onClick={() => {
                 setPhase("camera_loading");
-                setTimeout(() => startCamera(), 50);
+                setTimeout(() => startCamera(), 100);
               }}
               className="w-full h-20 bg-green-600 rounded-2xl flex items-center justify-center gap-3 text-white shadow-lg active:scale-[0.98] transition-transform"
             >
@@ -396,21 +435,25 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         </div>
       </div>
 
-      {/* Video + overlays */}
+      {/* Scanner container — html5-qrcode renders video here */}
       <div className="relative flex-1 overflow-hidden">
-        <video
-          ref={videoRef}
-          className="w-full h-full object-cover"
-          playsInline
-          muted
-          autoPlay
+        <div
+          id={SCANNER_CONTAINER_ID}
+          className="w-full h-full"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
         />
 
-        {/* Wide horizontal scan frame - optimized for 1D barcodes */}
+        {/* Scan frame overlay */}
         {(phase === "camera_active" || phase === "searching") && (
           <>
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <div className="relative w-[90vw] max-w-[500px] h-[120px]">
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
+              <div className="relative w-[85vw] max-w-[480px] h-[100px]">
                 {/* Corner brackets */}
                 <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-green-400 rounded-tl-lg" />
                 <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-green-400 rounded-tr-lg" />
@@ -421,9 +464,9 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
               </div>
             </div>
 
-            <div className="absolute bottom-12 left-0 right-0 text-center pointer-events-none">
+            <div className="absolute bottom-16 left-0 right-0 text-center pointer-events-none z-10">
               <p className="text-white/80 text-base font-medium">
-                {phase === "searching" ? `Searching: ${lastBarcode}...` : "Point barcode at line"}
+                {phase === "searching" ? `Searching: ${lastBarcode}...` : "Point barcode inside the box"}
               </p>
               <p className="text-white/50 text-xs mt-1">
                 {phase === "searching"
@@ -436,7 +479,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
         {/* Loading overlay */}
         {phase === "camera_loading" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-20">
             <ScanLine className="h-16 w-16 text-green-500 animate-spin mb-4" />
             <p className="text-white text-lg font-medium">Starting camera...</p>
             <p className="text-white/50 text-sm mt-2">Please allow camera access</p>
@@ -445,7 +488,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
         {/* Error overlay */}
         {phase === "camera_error" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-10 p-6">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-20 p-6">
             <Camera className="h-16 w-16 text-red-500 mb-4" />
             <h3 className="text-white font-semibold text-xl mb-2">Camera Error</h3>
             <p className="text-gray-400 text-sm mb-6 max-w-xs text-center">{errorMsg}</p>
@@ -467,9 +510,22 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
             </div>
           </div>
         )}
+
+        {/* Debug info toggle (hidden by default, tap to show) */}
+        <button
+          onClick={() => setDebugInfo((prev) => (prev.length > 0 ? [] : ["Debug mode"]))}
+          className="absolute bottom-2 right-2 z-30 p-2 rounded-full bg-black/50 text-white/50 hover:text-white"
+        >
+          <Bug className="h-4 w-4" />
+        </button>
+        {debugInfo.length > 0 && (
+          <div className="absolute bottom-10 right-2 left-2 z-30 bg-black/80 rounded-lg p-2 max-h-32 overflow-y-auto text-[10px] font-mono text-green-400">
+            {debugInfo.map((line, i) => (
+              <div key={i}>{line}</div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
-
