@@ -79,6 +79,18 @@ export default function AdminLayout({
     }
   }, []);
 
+  // Override manifest for admin context so "Add to Home Screen" opens admin
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    let link = document.querySelector('link[rel="manifest"]') as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "manifest";
+      document.head.appendChild(link);
+    }
+    link.href = "/admin-manifest.json";
+  }, []);
+
   if (pathname === "/admin/login") {
     return <>{children}</>;
   }

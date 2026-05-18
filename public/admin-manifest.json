@@ -1,15 +1,15 @@
 {
-  "name": "Kiranax Store",
-  "short_name": "Kiranax",
-  "description": "Your local grocery store — order fresh veggies, fruits, dairy & more",
-  "start_url": "/",
-  "scope": "/",
+  "name": "Kiranax Admin",
+  "short_name": "Kiranax Admin",
+  "description": "Inventory, billing & store management for Kiranax",
+  "start_url": "/admin/dashboard",
+  "scope": "/admin",
   "display": "standalone",
   "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "background_color": "#f2f0eb",
   "theme_color": "#00754a",
   "orientation": "portrait",
-  "categories": ["shopping", "food", "lifestyle"],
+  "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -42,22 +42,29 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Kiranax Store"
+      "label": "Kiranax Admin Dashboard"
     }
   ],
   "shortcuts": [
     {
-      "name": "Store",
-      "short_name": "Store",
-      "description": "Browse products",
-      "url": "/store",
+      "name": "Billing Scanner",
+      "short_name": "Billing",
+      "description": "Quick scan & bill",
+      "url": "/admin/scanner/billing",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Cart",
-      "short_name": "Cart",
-      "description": "View your cart",
-      "url": "/store/cart",
+      "name": "Inventory Scan",
+      "short_name": "Inventory",
+      "description": "Scan to update stock",
+      "url": "/admin/scanner/inventory",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Orders",
+      "short_name": "Orders",
+      "description": "View recent orders",
+      "url": "/admin/orders",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
