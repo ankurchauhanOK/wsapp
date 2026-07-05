@@ -19,11 +19,12 @@ export default function NewProductPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [saving, setSaving] = useState(false);
 
-  // Pre-fill barcode from scanner redirect
+  // Pre-fill from scanner redirect
   const prefillBarcode = searchParams.get("barcode") || "";
+  const prefillName = searchParams.get("name") || "";
 
   const [form, setForm] = useState({
-    name: "",
+    name: prefillName,
     category_id: "",
     type: "piece" as "piece" | "weight",
     unit_type: "piece" as string,

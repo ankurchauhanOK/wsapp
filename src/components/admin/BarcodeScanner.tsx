@@ -2,11 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toaster";
-import { X, Keyboard, Camera, ScanLine, Loader2, CheckCircle, Bug, Save } from "lucide-react";
-import type { Product, Category } from "@/types";
+import { X, Keyboard, Camera, ScanLine, Loader2, CheckCircle, Bug } from "lucide-react";
+import type { Product } from "@/types";
 
 type ScanResult =
   | { type: "product"; product: Product }
@@ -14,7 +12,7 @@ type ScanResult =
   | { type: "not_found"; barcode: string }
   | { type: "error"; message: string };
 
-type ScanPhase = "choose" | "camera_loading" | "camera_active" | "camera_error" | "searching" | "found" | "off_found" | "not_found" | "saving";
+type ScanPhase = "choose" | "camera_loading" | "camera_active" | "camera_error" | "searching" | "found";
 
 interface BarcodeScannerProps {
   onScan: (result: ScanResult) => void;
@@ -29,36 +27,12 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const [manualCode, setManualCode] = useState("");
   const [lastBarcode, setLastBarcode] = useState("");
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
-  const [offData, setOffData] = useState<{ name: string; image_url?: string; category?: string; brands?: string } | null>(null);
-
-  // Add-product form state
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [formName, setFormName] = useState("");
-  const [formPrice, setFormPrice] = useState("");
-  const [formStock, setFormStock] = useState("0");
-  const [formCategoryId, setFormCategoryId] = useState("");
-  const [formUnitType, setFormUnitType] = useState("piece");
-  const [formSaving, setFormSaving] = useState(false);
 
   const scannerRef = useRef<any>(null);
   const lastBarcodeRef = useRef<string>("");
   const lastScanAtRef = useRef<number>(0);
   const isSearchingRef = useRef<boolean>(false);
   const { toast } = useToast();
-
-  // Fetch categories when form is visible
-  useEffect(() => {
-    if (phase === "off_found" || phase === "not_found") {
-      if (categories.length === 0) {
-        fetch("/api/categories")
-          .then((res) => res.json())
-          .then((data) => {
-            if (Array.isArray(data)) setCategories(data);
-          })
-          .catch(() => {});
-      }
-    }
-  }, [phase, categories.length]);
 
   const log = useCallback((msg: string) => {
     console.log(`[Scanner] ${msg}`);
@@ -118,128 +92,6 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       }
     },
     [log]
-  );
-
-  const resetForm = useCallback(() => {
-    setFormName("");
-    setFormPrice("");
-    setFormStock("0");
-    setFormCategoryId("");
-    setFormUnitType("piece");
-    setOffData(null);
-  }, []);
-
-  const handleCreateProduct = useCallback(async () => {
-    if (!formName.trim()) {
-      toast({ title: "Product name is required", variant: "error" });
-      return;
-    }
-    setFormSaving(true);
-    try {
-      const body: Record<string, any> = {
-        name: formName.trim(),
-        price: Number(formPrice) || 0,
-        stock: Number(formStock) || 0,
-        barcode: lastBarcode,
-        category_id: formCategoryId || undefined,
-        unit_type: formUnitType,
-        type: formUnitType === "piece" || formUnitType === "dozen" || formUnitType === "pack" ? "piece" : "weight",
-      };
-      if (offData?.image_url) body.image = offData.image_url;
-
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        throw new Error(errBody.error || "Failed to create product");
-      }
-      const product: Product = await res.json();
-      log(`Product created: ${product.name}`);
-      setPhase("found");
-      toast({ title: `${product.name} created!`, variant: "success" });
-      onScan({ type: "product", product });
-    } catch (e: any) {
-      log(`Create error: ${e.message}`);
-      toast({ title: "Failed to create product", description: e.message, variant: "error" });
-    } finally {
-      setFormSaving(false);
-    }
-  }, [formName, formPrice, formStock, formCategoryId, formUnitType, lastBarcode, offData, toast, log, onScan]);
-
-  const handleDecodedBarcode = useCallback(
-    async (barcode: string) => {
-      if (
-        barcode === lastBarcodeRef.current &&
-        Date.now() - lastScanAtRef.current < 2000
-      ) {
-        log(`Debounced duplicate: ${barcode}`);
-        return;
-      }
-
-      if (isSearchingRef.current) {
-        log(`Already searching, ignoring: ${barcode}`);
-        return;
-      }
-
-      lastBarcodeRef.current = barcode;
-      lastScanAtRef.current = Date.now();
-      isSearchingRef.current = true;
-      setLastBarcode(barcode);
-
-      playBeep();
-      vibrate();
-      log(`Decoded barcode: ${barcode}`);
-
-      setPhase("searching");
-
-      const result = await lookupProduct(barcode);
-
-      isSearchingRef.current = false;
-
-      if (result.type === "product") {
-        setPhase("found");
-        resetForm();
-        toast({
-          title: "Product found!",
-          description: result.product.name,
-          variant: "success",
-        });
-        onScan(result);
-      } else if (result.type === "off_found") {
-        setOffData({
-          name: result.name,
-          image_url: result.image_url,
-          category: result.category,
-          brands: result.brands,
-        });
-        setFormName(result.name);
-        setPhase("off_found");
-        toast({
-          title: "Found online",
-          description: result.name,
-          variant: "info",
-        });
-      } else if (result.type === "not_found") {
-        setPhase("not_found");
-        resetForm();
-        toast({
-          title: "Product not found",
-          description: `Barcode: ${barcode}`,
-          variant: "info",
-        });
-      } else {
-        setPhase("camera_active");
-        toast({
-          title: "Lookup failed",
-          description: result.message,
-          variant: "error",
-        });
-      }
-    },
-    [lookupProduct, onScan, playBeep, vibrate, toast, log, resetForm]
   );
 
   const stopCamera = useCallback(async () => {
@@ -327,14 +179,13 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         variant: "error",
       });
     }
-  }, [handleDecodedBarcode, toast, log]);
+  }, [toast, log]);
 
   // ZXing fallback
   const startZXingFallback = useCallback(async () => {
     const { BrowserMultiFormatReader } = await import("@zxing/browser");
     const { DecodeHintType, BarcodeFormat } = await import("@zxing/library");
 
-    // Create a hidden video element
     const video = document.createElement("video");
     video.style.position = "fixed";
     video.style.top = "0";
@@ -385,7 +236,74 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
     setPhase("camera_active");
     log("ZXing fallback camera active");
-  }, [handleDecodedBarcode, log]);
+  }, [log]);
+
+  const handleDecodedBarcode = useCallback(
+    async (barcode: string) => {
+      if (
+        barcode === lastBarcodeRef.current &&
+        Date.now() - lastScanAtRef.current < 3000
+      ) {
+        log(`Debounced duplicate: ${barcode}`);
+        return;
+      }
+
+      if (isSearchingRef.current) {
+        log(`Already searching, ignoring: ${barcode}`);
+        return;
+      }
+
+      isSearchingRef.current = true;
+      lastBarcodeRef.current = barcode;
+      lastScanAtRef.current = Date.now();
+      setLastBarcode(barcode);
+
+      // Stop camera immediately — single scan per open
+      await stopCamera();
+
+      playBeep();
+      vibrate();
+      log(`Decoded barcode: ${barcode}`);
+
+      setPhase("searching");
+
+      const result = await lookupProduct(barcode);
+
+      isSearchingRef.current = false;
+
+      if (result.type === "product") {
+        setPhase("found");
+        toast({
+          title: "Product found!",
+          description: result.product.name,
+          variant: "success",
+        });
+      } else if (result.type === "off_found") {
+        log(`OpenFoodFacts data available for: ${result.name}`);
+        toast({
+          title: "Found online",
+          description: result.name,
+          variant: "info",
+        });
+      } else if (result.type === "not_found") {
+        toast({
+          title: "Product not found",
+          description: `Barcode: ${barcode}`,
+          variant: "info",
+        });
+      } else {
+        toast({
+          title: "Lookup failed",
+          description: result.message,
+          variant: "error",
+        });
+      }
+
+      // Notify parent — it handles navigation / UI
+      onScan(result);
+    },
+    [lookupProduct, onScan, playBeep, vibrate, toast, log, stopCamera]
+  );
 
   // Cleanup on unmount
   useEffect(() => {
@@ -398,126 +316,6 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     if (!manualCode.trim()) return;
     handleDecodedBarcode(manualCode.trim());
     setManualCode("");
-  };
-
-  // --- Helper render for add-product form ---
-  const renderAddForm = (prefilledName: string) => {
-    const isOff = phase === "off_found";
-    return (
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {isOff && offData?.image_url && (
-          <div className="flex justify-center">
-            <div className="w-32 h-32 rounded-xl overflow-hidden bg-gray-800 border border-gray-700">
-              <img
-                src={offData.image_url}
-                alt=""
-                className="w-full h-full object-contain"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).style.display = "none";
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {isOff && offData?.brands && (
-          <p className="text-center text-sm text-gray-400">{offData.brands}</p>
-        )}
-
-        <div className="bg-gray-800/50 rounded-xl px-4 py-3 text-center">
-          <p className="text-[10px] text-gray-500 uppercase tracking-wider">Barcode</p>
-          <p className="text-white text-lg font-mono font-bold mt-0.5">{lastBarcode}</p>
-        </div>
-
-        <div className="space-y-3">
-          <Input
-            placeholder="Product name"
-            value={formName}
-            onChange={(e) => setFormName(e.target.value)}
-            className="h-12 text-base bg-gray-900 border-gray-700 text-white placeholder-gray-500"
-            autoFocus
-          />
-
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              placeholder="Price"
-              value={formPrice}
-              onChange={(e) => setFormPrice(e.target.value)}
-              className="h-12 flex-1 bg-gray-900 border-gray-700 text-white placeholder-gray-500"
-            />
-            <Input
-              type="number"
-              placeholder="Stock"
-              value={formStock}
-              onChange={(e) => setFormStock(e.target.value)}
-              className="h-12 w-28 bg-gray-900 border-gray-700 text-white placeholder-gray-500"
-            />
-          </div>
-
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Select
-                placeholder="Category"
-                value={formCategoryId}
-                onChange={(e) => setFormCategoryId(e.target.value)}
-                options={[
-                  { value: "", label: "No category" },
-                  ...categories.map((c) => ({ value: c.id, label: c.name })),
-                ]}
-                className="h-12 bg-gray-900 border-gray-700 text-white"
-              />
-            </div>
-            <Select
-              placeholder="Unit"
-              value={formUnitType}
-              onChange={(e) => setFormUnitType(e.target.value)}
-              options={[
-                { value: "piece", label: "Piece" },
-                { value: "pack", label: "Pack" },
-                { value: "kg", label: "Kg" },
-                { value: "g", label: "Gram" },
-                { value: "l", label: "Litre" },
-                { value: "ml", label: "Ml" },
-                { value: "dozen", label: "Dozen" },
-              ]}
-              className="h-12 w-28 bg-gray-900 border-gray-700 text-white"
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-2 pt-2">
-          <Button
-            className="flex-1 h-12 text-base font-semibold"
-            onClick={handleCreateProduct}
-            disabled={formSaving || !formName.trim()}
-          >
-            {formSaving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                {isOff ? "Save Product from OpenFoodFacts" : "Add Product"}
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              stopCamera();
-              setPhase("choose");
-              resetForm();
-            }}
-            className="h-12 px-4 border-gray-700 text-gray-300"
-          >
-            Back
-          </Button>
-        </div>
-      </div>
-    );
   };
 
   // --- Choose / Manual Entry screen ---
@@ -585,62 +383,6 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     );
   }
 
-  // --- Not Found (no online data) ---
-  if (phase === "not_found") {
-    return (
-      <div className="fixed inset-0 z-50 bg-black flex flex-col no-select">
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="text-white font-semibold text-lg">Product Not Found</h2>
-          <button
-            onClick={() => {
-              stopCamera();
-              onClose?.();
-            }}
-            className="p-2 rounded-full bg-white/10 text-white hover:bg-white/20"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-3">
-          <p className="text-amber-400 text-xs font-medium">
-            No online data found for this barcode. Fill in the details to add it.
-          </p>
-        </div>
-
-        {renderAddForm("")}
-      </div>
-    );
-  }
-
-  // --- OpenFoodFacts found ---
-  if (phase === "off_found") {
-    return (
-      <div className="fixed inset-0 z-50 bg-black flex flex-col no-select">
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="text-white font-semibold text-lg">Found Online</h2>
-          <button
-            onClick={() => {
-              stopCamera();
-              onClose?.();
-            }}
-            className="p-2 rounded-full bg-white/10 text-white hover:bg-white/20"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="bg-green-500/10 border-b border-green-500/20 px-4 py-3">
-          <p className="text-green-400 text-xs font-medium">
-            Product data found on OpenFoodFacts. Review and save to your database.
-          </p>
-        </div>
-
-        {renderAddForm(offData?.name || "")}
-      </div>
-    );
-  }
-
   // --- Camera screen ---
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col no-select">
@@ -656,19 +398,13 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           {phase === "searching" && (
             <div className="flex items-center gap-1.5 bg-amber-500 px-2.5 py-1 rounded-full">
               <Loader2 className="w-3 h-3 text-white animate-spin" />
-              <span className="text-white text-xs font-semibold">Searching...</span>
+              <span className="text-white text-xs font-semibold">Looking up...</span>
             </div>
           )}
           {phase === "found" && (
             <div className="flex items-center gap-1.5 bg-green-500 px-2.5 py-1 rounded-full">
               <CheckCircle className="w-3 h-3 text-white" />
               <span className="text-white text-xs font-semibold">Found</span>
-            </div>
-          )}
-          {phase === "saving" && (
-            <div className="flex items-center gap-1.5 bg-blue-500 px-2.5 py-1 rounded-full">
-              <Loader2 className="w-3 h-3 text-white animate-spin" />
-              <span className="text-white text-xs font-semibold">Saving...</span>
             </div>
           )}
         </div>
@@ -747,18 +483,10 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
         {/* Found overlay (brief) */}
         {phase === "found" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20 animate-fade-in">
             <CheckCircle className="h-16 w-16 text-green-500 mb-3" />
             <p className="text-white text-lg font-semibold">Product Found</p>
-            <button
-              onClick={() => {
-                stopCamera();
-                setPhase("choose");
-              }}
-              className="mt-6 px-6 py-2 bg-white/10 rounded-full text-white text-sm hover:bg-white/20"
-            >
-              Scan Another
-            </button>
+            <p className="text-gray-400 text-sm mt-1">{lastBarcode}</p>
           </div>
         )}
 

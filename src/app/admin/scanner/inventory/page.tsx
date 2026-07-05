@@ -60,11 +60,21 @@ export default function InventoryScannerPage() {
           variant: "success",
         });
         router.push(`/admin/products/${result.product.id}`);
+      } else if (result.type === "off_found") {
+        // Data found on OpenFoodFacts — redirect to add page with barcode + name prefilled
+        const params = new URLSearchParams({ barcode: result.barcode });
+        if (result.name) params.set("name", result.name);
+        toast({
+          title: "Found online",
+          description: `${result.name} — opening add page...`,
+          variant: "info",
+        });
+        router.push(`/admin/products/new?${params.toString()}`);
       } else if (result.type === "not_found") {
-        // New product - redirect to add page with barcode prefilled
+        // New product — redirect to add page with barcode prefilled
         toast({
           title: "New product",
-          description: `Barcode: ${result.barcode} - opening add page...`,
+          description: `Barcode: ${result.barcode} — opening add page...`,
           variant: "info",
         });
         router.push(`/admin/products/new?barcode=${encodeURIComponent(result.barcode)}`);
