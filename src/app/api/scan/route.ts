@@ -9,7 +9,6 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const code = searchParams.get("code");
-
     if (!code) return badRequest("No code provided");
 
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -26,16 +25,47 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error("[Supabase error]", JSON.stringify(error));
-      return NextResponse.json({ success: false, message: "Database query failed" }, { status: 500 });
-    }
-    if (!data) {
-      return NextResponse.json({ success: false, message: "Product not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "Database query failed", openfoodfacts: null },
+        { status: 500 },
+      );
     }
 
-    return NextResponse.json(data);
+    if (data) return NextResponse.json(data);
+
+    let offProduct = null;
+    try {
+      const offRes = await fetch(
+        `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json`,
+        { signal: AbortSignal.timeout(8000) },
+      );
+      if (offRes.ok) {
+        const offData = await offRes.json();
+        if (offData.status === 1 && offData.product) {
+          const p = offData.product;
+          offProduct = {
+            name: p.product_name || p.product_name_en || "",
+            barcode: code,
+            image_url: p.image_url || undefined,
+            category: p.categories || undefined,
+            brands: p.brands || undefined,
+          };
+        }
+      }
+    } catch (offErr) {
+      console.error("[OpenFoodFacts error]", offErr);
+    }
+
+    return NextResponse.json(
+      { success: false, message: "Product not found", openfoodfacts: offProduct },
+      { status: 404 },
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
     console.error("[API Error]", message);
-    return NextResponse.json({ success: false, message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message, openfoodfacts: null },
+      { status: 500 },
+    );
   }
 }
