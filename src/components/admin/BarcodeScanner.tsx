@@ -283,8 +283,21 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       setPhase("searching");
 
       console.log("[STEP 4] Calling lookupProduct()...");
-      const result = await lookupProduct(barcode);
-      console.log("[STEP 5] lookupProduct() returned:", JSON.stringify(result, null, 2));
+      let result: ScanResult;
+      try {
+        result = await lookupProduct(barcode);
+        console.log("[STEP 5] lookupProduct() returned:", JSON.stringify(result, null, 2));
+      } catch (err) {
+        console.error("[STEP 5 ERROR] lookupProduct() threw:", err);
+        setPhase("choose");
+        toast({
+          title: "Lookup failed",
+          description: "Could not reach the server. Please try again.",
+          variant: "error",
+        });
+        isSearchingRef.current = false;
+        return;
+      }
 
       isSearchingRef.current = false;
       console.log("[STEP 5a] isSearchingRef=false");
@@ -324,7 +337,6 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
       // Notify parent — it handles navigation / UI
       console.log("[STEP 7] Calling onScan(result) — passing to parent");
-      console.log("[STEP 7a] onScan function identity:", onScan.toString().substring(0, 80));
       try {
         onScan(result);
         console.log("[STEP 7b] onScan() completed successfully");

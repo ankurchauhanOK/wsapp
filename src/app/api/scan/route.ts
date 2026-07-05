@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
       .eq("shop_id", SHOP_ID)
       .eq("active", true)
       .or(filters.join(","))
-      .maybeSingle();
+      .limit(1);
 
     if (error) {
       console.error("[Supabase error]", error.message, error);
@@ -33,9 +33,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (data) {
-      console.log(`[Scan] Found locally: ${data.name} (${code})`);
-      return NextResponse.json({ type: "product", product: data });
+    const product = data?.[0];
+
+    if (product) {
+      console.log(`[Scan] Found locally: ${product.name} (${code})`);
+      return NextResponse.json({ type: "product", product });
     }
 
     let offProduct = null;
