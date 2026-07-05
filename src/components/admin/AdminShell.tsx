@@ -54,6 +54,8 @@ export default function AdminShell({
   const isLoginPage = pathname === "/admin/login";
   const isScannerPage = pathname.startsWith("/admin/scanner/");
   const showFab = !isBillingPage && !isLoginPage;
+
+  
   const showBottomNav = !isLoginPage && !isScannerPage;
   const showMobileHeader = !isLoginPage && !isScannerPage;
 

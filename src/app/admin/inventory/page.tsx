@@ -19,9 +19,11 @@ import {
   Filter,
   History,
   ArrowUpDown,
+  Scan,
 } from "lucide-react";
 import type { Product, Category, InventoryTransaction } from "@/types";
 import { getMockCategories, getMockProducts } from "@/lib/mock-data";
+import { CameraScannerModal } from "@/components/admin/CameraScannerModal";
 
 interface InventoryStats {
   totalProducts: number;
@@ -45,6 +47,13 @@ export default function AdminInventoryPage() {
   const [showHistory, setShowHistory] = useState(false);
   const [quickEditProduct, setQuickEditProduct] = useState<Product | null>(null);
   const [quickQty, setQuickQty] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setNow(Date.now());
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -85,7 +94,7 @@ export default function AdminInventoryPage() {
     const outOfStock = products.filter((p) => p.stock <= 0).length;
     const expiringSoon = products.filter((p) => {
       if (!p.expiry_date) return false;
-      const days = Math.ceil((new Date(p.expiry_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      const days = Math.ceil((new Date(p.expiry_date).getTime() - now) / (1000 * 60 * 60 * 24));
       return days <= 7 && days >= 0;
     }).length;
     const todayMovements = transactions.filter((t) => {
@@ -100,7 +109,7 @@ export default function AdminInventoryPage() {
       expiringSoon,
       todayMovements,
     };
-  }, [products, transactions]);
+  }, [products, transactions, now]);
 
   const filteredProducts = useMemo(() => {
     let filtered = products;
@@ -181,6 +190,10 @@ export default function AdminInventoryPage() {
     await handleQuickStockUpdate(quickEditProduct, delta);
     setQuickEditProduct(null);
     setQuickQty("");
+  };
+
+  const handleBarcodeScanned = (barcode: string) => {
+    setSearch(barcode);
   };
 
   if (loading) {
@@ -289,6 +302,15 @@ export default function AdminInventoryPage() {
             className="pl-9"
           />
         </div>
+        <Button
+          onClick={() => setShowScanner(true)}
+          size="sm"
+          variant="default"
+          className="shrink-0 gap-1.5 text-xs sm:text-sm px-3"
+        >
+          <Scan className="h-4 w-4" />
+          Scan Barcode
+        </Button>
         <div className="flex items-center gap-1">
           {(["name", "stock", "sales"] as const).map((s) => (
             <button
@@ -319,7 +341,7 @@ export default function AdminInventoryPage() {
             const isExpiring =
               product.expiry_date &&
               Math.ceil(
-                (new Date(product.expiry_date).getTime() - Date.now()) /
+                (new Date(product.expiry_date).getTime() - now) /
                   (1000 * 60 * 60 * 24)
               ) <= 7;
 
@@ -467,6 +489,13 @@ export default function AdminInventoryPage() {
           </div>
         </div>
       )}
+
+      {/* Camera Scanner Modal */}
+      <CameraScannerModal
+        open={showScanner}
+        onOpenChange={setShowScanner}
+        onScan={handleBarcodeScanned}
+      />
     </div>
   );
 }
