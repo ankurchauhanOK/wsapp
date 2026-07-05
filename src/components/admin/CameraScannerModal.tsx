@@ -101,7 +101,7 @@ export function CameraScannerModal({
         scannerRef.current = scanner;
 
         await scanner.start(
-          deviceId ? { deviceId } : { facingMode: "environment" },
+          deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" },
           {
             fps: 10,
             qrbox: { width: 280, height: 120 },

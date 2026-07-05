@@ -172,11 +172,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         throw new Error("Scanner container not found");
       }
 
-      // iOS camera config: prefer back camera with continuous autofocus
-      const cameraConfig = {
-        facingMode: "environment",
-        focusMode: "continuous" as const,
-      };
+      const cameraConfig = { facingMode: "environment" };
 
       const scanner = new Html5Qrcode(SCANNER_CONTAINER_ID);
       scannerRef.current = scanner;
