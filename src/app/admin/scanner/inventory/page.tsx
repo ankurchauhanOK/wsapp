@@ -50,37 +50,57 @@ export default function InventoryScannerPage() {
 
   const handleScanResult = useCallback(
     (result: any) => {
-      console.log("[Scan result]", JSON.stringify(result, null, 2));
+      console.log("[PARENT handleScanResult ENTER] result:", JSON.stringify(result, null, 2));
+      console.log("[PARENT handleScanResult] setShowScanner(false)");
       setShowScanner(false); // Close scanner overlay
 
       if (result.type === "product") {
-        // Product exists - redirect to edit page
+        const url = `/admin/products/${result.product.id}`;
+        console.log("[PARENT NAV] type=product, pushing to:", url);
+        console.log("[PARENT NAV] product.id:", result.product.id, "product.name:", result.product.name);
         toast({
           title: "Product found!",
           description: `${result.product.name} - opening edit page...`,
           variant: "success",
         });
-        router.push(`/admin/products/${result.product.id}`);
+        try {
+          router.push(url);
+          console.log("[PARENT NAV] router.push() completed");
+        } catch (e) {
+          console.error("[PARENT NAV] router.push() THREW:", e);
+        }
       } else if (result.type === "off_found") {
-        // Data found on OpenFoodFacts — redirect to add page with barcode + name prefilled
         const params = new URLSearchParams({ barcode: result.barcode });
         if (result.name) params.set("name", result.name);
+        const url = `/admin/products/new?${params.toString()}`;
+        console.log("[PARENT NAV] type=off_found, pushing to:", url);
         toast({
           title: "Found online",
           description: `${result.name} — opening add page...`,
           variant: "info",
         });
-        router.push(`/admin/products/new?${params.toString()}`);
+        try {
+          router.push(url);
+          console.log("[PARENT NAV] router.push() completed");
+        } catch (e) {
+          console.error("[PARENT NAV] router.push() THREW:", e);
+        }
       } else if (result.type === "not_found") {
-        // New product — redirect to add page with barcode prefilled
+        const url = `/admin/products/new?barcode=${encodeURIComponent(result.barcode)}`;
+        console.log("[PARENT NAV] type=not_found, pushing to:", url);
         toast({
           title: "New product",
           description: `Barcode: ${result.barcode} — opening add page...`,
           variant: "info",
         });
-        router.push(`/admin/products/new?barcode=${encodeURIComponent(result.barcode)}`);
+        try {
+          router.push(url);
+          console.log("[PARENT NAV] router.push() completed");
+        } catch (e) {
+          console.error("[PARENT NAV] router.push() THREW:", e);
+        }
       } else if (result.type === "error") {
-        // Lookup failed - stay on this page, show error
+        console.log("[PARENT NAV] type=error, NOT navigating, showing toast");
         toast({
           title: "Scan failed",
           description: result.message || "Could not look up product. Try again.",

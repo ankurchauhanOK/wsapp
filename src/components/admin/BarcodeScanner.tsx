@@ -66,29 +66,40 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
   const lookupProduct = useCallback(
     async (barcode: string): Promise<ScanResult> => {
+      console.log("[lookupProduct ENTER] barcode:", barcode);
       try {
-        log(`API lookup: ${barcode}`);
-        const res = await fetch(`/api/scan?code=${encodeURIComponent(barcode)}`);
+        const url = `/api/scan?code=${encodeURIComponent(barcode)}`;
+        console.log("[lookupProduct FETCH] url:", url);
+        const res = await fetch(url);
+        console.log("[lookupProduct RESPONSE] status:", res.status, "ok:", res.ok);
+
+        const body = await res.json();
+        console.log("[lookupProduct BODY]", JSON.stringify(body, null, 2));
+
         if (res.ok) {
-          const data = await res.json();
-          const product: Product = data.product || data;
-          log(`Found product: ${product.name}`);
-          return { type: "product", product };
+          const product: Product = body.product || body;
+          console.log("[lookupProduct PRODUCT] id:", product.id, "name:", product.name);
+          const result = { type: "product" as const, product };
+          console.log("[lookupProduct RETURN] product found:", JSON.stringify(result, null, 2));
+          return result;
         }
         if (res.status === 404) {
-          const body = await res.json();
           if (body.openfoodfacts) {
-            log(`OpenFoodFacts found: ${body.openfoodfacts.name}`);
-            return { type: "off_found", ...body.openfoodfacts };
+            console.log("[lookupProduct OFF] OpenFoodFacts found:", body.openfoodfacts.name);
+            const result = { type: "off_found" as const, ...body.openfoodfacts };
+            console.log("[lookupProduct RETURN] off_found:", JSON.stringify(result, null, 2));
+            return result;
           }
-          log(`Not found: ${barcode}`);
-          return { type: "not_found", barcode };
+          console.log("[lookupProduct NOT_FOUND] no data anywhere for barcode:", barcode);
+          const result = { type: "not_found" as const, barcode };
+          console.log("[lookupProduct RETURN] not_found:", JSON.stringify(result, null, 2));
+          return result;
         }
-        log(`Server error: ${res.status}`);
-        return { type: "error", message: `Server error: ${res.status}` };
+        console.log("[lookupProduct ERROR] server returned status:", res.status);
+        return { type: "error" as const, message: `Server error: ${res.status}` };
       } catch (e: any) {
-        log(`Network error: ${e.message}`);
-        return { type: "error", message: "Network error" };
+        console.error("[lookupProduct EXCEPTION]", e);
+        return { type: "error" as const, message: "Network error" };
       }
     },
     [log]
@@ -240,38 +251,46 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
   const handleDecodedBarcode = useCallback(
     async (barcode: string) => {
+      console.log("[STEP 1] handleDecodedBarcode ENTERED", barcode);
+
       if (
         barcode === lastBarcodeRef.current &&
         Date.now() - lastScanAtRef.current < 3000
       ) {
-        log(`Debounced duplicate: ${barcode}`);
+        console.log("[STEP 1a] Debounced duplicate, EXIT", barcode);
         return;
       }
 
       if (isSearchingRef.current) {
-        log(`Already searching, ignoring: ${barcode}`);
+        console.log("[STEP 1b] Already searching, EXIT", barcode);
         return;
       }
 
+      console.log("[STEP 1c] Setting refs, isSearchingRef=true");
       isSearchingRef.current = true;
       lastBarcodeRef.current = barcode;
       lastScanAtRef.current = Date.now();
       setLastBarcode(barcode);
 
       // Stop camera immediately — single scan per open
+      console.log("[STEP 2] Calling stopCamera()...");
       await stopCamera();
+      console.log("[STEP 2a] stopCamera() completed");
 
       playBeep();
       vibrate();
-      log(`Decoded barcode: ${barcode}`);
-
+      console.log(`[STEP 3] Decoded barcode: ${barcode}, setting phase=searching`);
       setPhase("searching");
 
+      console.log("[STEP 4] Calling lookupProduct()...");
       const result = await lookupProduct(barcode);
+      console.log("[STEP 5] lookupProduct() returned:", JSON.stringify(result, null, 2));
 
       isSearchingRef.current = false;
+      console.log("[STEP 5a] isSearchingRef=false");
 
       if (result.type === "product") {
+        console.log("[STEP 6a] Result type=product, setting phase=found");
         setPhase("found");
         toast({
           title: "Product found!",
@@ -279,7 +298,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           variant: "success",
         });
       } else {
-        // Camera is already stopped — go back to start screen
+        console.log("[STEP 6b] Result type != product, setting phase=choose");
         setPhase("choose");
         if (result.type === "off_found") {
           log(`OpenFoodFacts data available for: ${result.name}`);
@@ -304,7 +323,14 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       }
 
       // Notify parent — it handles navigation / UI
-      onScan(result);
+      console.log("[STEP 7] Calling onScan(result) — passing to parent");
+      console.log("[STEP 7a] onScan function identity:", onScan.toString().substring(0, 80));
+      try {
+        onScan(result);
+        console.log("[STEP 7b] onScan() completed successfully");
+      } catch (e) {
+        console.error("[STEP 7c] onScan() THREW:", e);
+      }
     },
     [lookupProduct, onScan, playBeep, vibrate, toast, log, stopCamera]
   );
