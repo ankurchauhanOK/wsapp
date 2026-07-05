@@ -43,6 +43,7 @@ export default function BillingScannerPage() {
 
   const handleScanResult = useCallback(
     (result: any) => {
+      console.log("[Scan result]", JSON.stringify(result, null, 2));
       if (result.type === "product") {
         const product: Product = result.product;
         addBillItem(product);
@@ -62,7 +63,7 @@ export default function BillingScannerPage() {
           description: `Quantity in cart: ${qty}`,
           variant: "success",
         });
-      } else if (result.type === "not_found") {
+      } else if (result.type === "off_found" || result.type === "not_found") {
         setScanCard({ type: "not_found", barcode: result.barcode });
         toast({
           title: "Product not found",

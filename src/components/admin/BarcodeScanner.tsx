@@ -278,25 +278,29 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           description: result.product.name,
           variant: "success",
         });
-      } else if (result.type === "off_found") {
-        log(`OpenFoodFacts data available for: ${result.name}`);
-        toast({
-          title: "Found online",
-          description: result.name,
-          variant: "info",
-        });
-      } else if (result.type === "not_found") {
-        toast({
-          title: "Product not found",
-          description: `Barcode: ${barcode}`,
-          variant: "info",
-        });
       } else {
-        toast({
-          title: "Lookup failed",
-          description: result.message,
-          variant: "error",
-        });
+        // Camera is already stopped — go back to start screen
+        setPhase("choose");
+        if (result.type === "off_found") {
+          log(`OpenFoodFacts data available for: ${result.name}`);
+          toast({
+            title: "Found online",
+            description: result.name,
+            variant: "info",
+          });
+        } else if (result.type === "not_found") {
+          toast({
+            title: "Product not found",
+            description: `Barcode: ${barcode}`,
+            variant: "info",
+          });
+        } else {
+          toast({
+            title: "Lookup failed",
+            description: result.message,
+            variant: "error",
+          });
+        }
       }
 
       // Notify parent — it handles navigation / UI

@@ -50,6 +50,7 @@ export default function InventoryScannerPage() {
 
   const handleScanResult = useCallback(
     (result: any) => {
+      console.log("[Scan result]", JSON.stringify(result, null, 2));
       setShowScanner(false); // Close scanner overlay
 
       if (result.type === "product") {
