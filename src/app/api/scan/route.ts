@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { badRequest } from "@/lib/api-utils";
 
 const supabase = () => createAdminClient();
 const SHOP_ID = process.env.SHOP_ID || "default";
 
 export async function GET(req: NextRequest) {
+  let code = "";
   try {
     const { searchParams } = new URL(req.url);
-    const code = searchParams.get("code");
-    if (!code) return badRequest("No code provided");
+    code = searchParams.get("code") || "";
+    if (!code) {
+      return NextResponse.json({ error: "No code provided" }, { status: 400 });
+    }
 
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const filters = [`barcode.eq.${code}`, `internal_code.eq.${code}`];
@@ -24,14 +26,17 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (error) {
-      console.error("[Supabase error]", JSON.stringify(error));
+      console.error("[Supabase error]", error.message, error);
       return NextResponse.json(
-        { success: false, message: "Database query failed", openfoodfacts: null },
+        { error: "Database query failed" },
         { status: 500 },
       );
     }
 
-    if (data) return NextResponse.json(data);
+    if (data) {
+      console.log(`[Scan] Found locally: ${data.name} (${code})`);
+      return NextResponse.json({ type: "product", product: data });
+    }
 
     let offProduct = null;
     try {
@@ -50,22 +55,22 @@ export async function GET(req: NextRequest) {
             category: p.categories || undefined,
             brands: p.brands || undefined,
           };
+          console.log(`[Scan] Found on OpenFoodFacts: ${offProduct.name} (${code})`);
         }
       }
     } catch (offErr) {
-      console.error("[OpenFoodFacts error]", offErr);
+      console.error("[Scan] OpenFoodFacts fetch failed:", offErr);
     }
 
-    return NextResponse.json(
-      { success: false, message: "Product not found", openfoodfacts: offProduct },
-      { status: 404 },
-    );
+    if (offProduct) {
+      return NextResponse.json({ openfoodfacts: offProduct }, { status: 404 });
+    }
+
+    console.log(`[Scan] Not found anywhere: ${code}`);
+    return NextResponse.json({ barcode: code }, { status: 404 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    console.error("[API Error]", message);
-    return NextResponse.json(
-      { success: false, message, openfoodfacts: null },
-      { status: 500 },
-    );
+    console.error(`[Scan] Unhandled error for code="${code}":`, error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

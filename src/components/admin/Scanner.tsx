@@ -32,11 +32,12 @@ export function Scanner({ mode, onProductFound, onStockUpdate }: ScannerProps) {
     try {
       const res = await fetch(`/api/scan?code=${encodeURIComponent(code)}`);
       if (res.ok) {
-        const data = await res.json();
-        setProduct(data);
+        const body = await res.json();
+        const product = body.product || body;
+        setProduct(product);
         setQtyAdjust(0);
         setManualCode("");
-        onProductFound?.(data);
+        onProductFound?.(product);
       } else {
         toast({ title: "Product not found by barcode/code", variant: "error" });
         // Fallback: search by name
